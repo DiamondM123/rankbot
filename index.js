@@ -98,7 +98,7 @@ client.on('message', async msg => {
 			const modeRoles = (globalMode === "rt") ? rtRoles : ctRoles
 			const result = await getRequest(globalMode, commandParams[1])
 			if (!result) {
-				msg.reply("Error. Unable to find player/event")
+				msg.author.send("Error. Unable to find player/event")
 				return msg.delete()
 			}
 			var mentionPlayers = ''
@@ -108,7 +108,7 @@ client.on('message', async msg => {
 				//extra logic for additional players
 				let currentPlayer = msg.guild.members.cache.find(member => member.displayName.toLowerCase().replace(/\s/g, '').replace("é", '') === result[0].toLowerCase().replace(/\s/g, '').replace("é", ''))
 				if (currentPlayer === undefined) {
-					msg.reply("Unable to find server member with the name " + commandParams[1])
+					msg.author.send("Unable to find server member with the name " + commandParams[1])
 					return msg.delete()
 				}
 				for (j = 0; j < modeRoles.length; j++) {
@@ -117,7 +117,7 @@ client.on('message', async msg => {
 						break
 				}
 				if (currentPlayer === undefined) {
-					msg.reply("Member found does not have a rank role yet.")
+					msg.author.send("Member found does not have a rank role yet.")
 					return msg.delete()
 				}
 				//end
@@ -142,7 +142,7 @@ client.on('message', async msg => {
 						if (currentPlayer === undefined) {
 							let errorPlayers = []
 							players.forEach((player) => errorPlayers.push(player))
-							msg.reply("Unable to find server members with the name(s) " + errorPlayers.join(" "))
+							msg.author.send("Unable to find server members with the name(s) " + errorPlayers.join(" "))
 							return msg.delete()
 						}
 						//...
@@ -152,7 +152,7 @@ client.on('message', async msg => {
 								break
 						}
 						if (currentPlayer === undefined) {
-							msg.reply("Member(s) found in this event do not have a rank role yet.")
+							msg.author.send("Member(s) found in this event do not have a rank role yet.")
 							return msg.delete()
 						}
 						//...
