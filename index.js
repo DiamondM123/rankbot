@@ -140,10 +140,8 @@ client.on('message', async msg => {
 					for (i = 0; i < players.length; i++) {
 						let currentPlayer = msg.guild.members.cache.find(member => member.displayName.toLowerCase().replace(/\s/g, '').replace("é", '') === players[i].toLowerCase().replace(/\s/g, '').replace("é", ''))
 						if (currentPlayer === undefined) {
-							let errorPlayers = []
-							players.forEach((player) => errorPlayers.push(player))
-							msg.author.send("Unable to find server members with the name(s) " + errorPlayers.join(" "))
-							return msg.delete()
+							msg.author.send("Unable to find server member with the name " + players[i]).catch((e) => console.log(e))
+							continue
 						}
 						//...
 						for (j = 0; j < modeRoles.length; j++) {
@@ -152,8 +150,8 @@ client.on('message', async msg => {
 								break
 						}
 						if (currentPlayer === undefined) {
-							msg.author.send("Member(s) found in this event do not have a rank role yet.")
-							return msg.delete()
+							msg.author.send("Member(s) found in this event do not have a rank role yet.").catch((e) => console.log(e))
+							continue
 						}
 						//...
 						mentionPlayers += `${currentPlayer} :` + ranks[i].replace(globalMode.toUpperCase() + " ", '').toLowerCase().replace(" ii", ': II').replace(" i", ': I').replace("platinum", "plat")
