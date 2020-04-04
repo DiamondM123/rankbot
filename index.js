@@ -127,7 +127,7 @@ client.on('message', async msg => {
 						if (currentPlayer.roles.cache.some(role => role.name === modeRoles[j]))
 							currentPlayer.roles.remove(currentPlayer.roles.cache.find(role => role.name.toLowerCase() === modeRoles[j].toLowerCase()))
 					}
-					let fromPenText = (commandParams[2] === "fp") ? "(frompen)" : ""
+					let fromPenText = (commandParams[2] === "np") ? "" : "(from pen)"
 					currentPlayer.roles.add(serverRole.id)
 					mentionPlayers += `${currentPlayer} :` + result[1].replace(globalMode.toUpperCase() + " ", '').toLowerCase().replace(" ii", ': II').replace(" i", ': I').replace("platinum", "plat")
 					mentionPlayers += (mentionPlayers[mentionPlayers.length-1] === "I") ? ` ${fromPenText}\n` : `: ${fromPenText}\n`
