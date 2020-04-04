@@ -117,7 +117,7 @@ client.on('message', async msg => {
 						break
 				}
 				if (currentPlayer === undefined) {
-					msg.author.send("Member found does not have a rank role yet.")
+					msg.author.send(commandParams[1] + " does not have a rank role yet.")
 					return msg.delete()
 				}
 				//end
