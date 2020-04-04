@@ -25,9 +25,9 @@ const downloadPage = (url) => {
 const getRequest = async (mode, warid) => {
 	var roles = [], members = []
 	try {
-		let html = await downloadPage('https://mariokartboards.com/lounge/json/player.php?type=' + mode + ((isNaN(warid)) ? "&name=" : "&id=") + warid)
-		let parsedData = JSON.parse(html)
 		if (isNaN(warid)) {
+			let html = await downloadPage('https://mariokartboards.com/lounge/json/player.php?type=' + mode + '&name=' + warid)
+			let parsedData = JSON.parse(html)
 			let returnArray = []
 			if (parsedData.length > 0) {
 				returnArray.push(parsedData[0].name)
@@ -59,6 +59,8 @@ const getRequest = async (mode, warid) => {
 				return false
 			return returnArray
 		} else {
+			let html = await downloadPage('https://mariokartboards.com/lounge/json/event.php?type=' + mode + '&id=' + warid)
+			let parsedData = JSON.parse(html)
 			if (parsedData.length > 1) {
 				for (i = 0; i < parsedData.length; i++) {
 					let promotion = parsedData[i].promotion
