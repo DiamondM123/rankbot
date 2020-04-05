@@ -4,7 +4,7 @@ const {config} = require('dotenv')
 const request = require("request")
 const latinise = require('./latinise') //ty cheron and company
 
-const client = new Discord.Client()
+const client = new Discord.Client({disableEveryone: true})
 
 config({
 	path: __dirname + "/.env"
@@ -109,7 +109,7 @@ client.on('message', async msg => {
 			let currentPlayer = msg.guild.members.cache.find(member => member.displayName.replace(/\s/g, '').latinise().toLowerCase() === result[0].replace(/\s/g, '').latinise().toLowerCase())
 			if (currentPlayer === undefined) return msg.author.send("Unable to find server member with the name " + commandParams[1])
 			for (j = 0; j < modeRoles.length; j++) {
-				currentPlayer = msg.guild.members.cache.find(member => member.displayName.replace(/\s/g, '').latinise().toLowerCase() === result[0].replace(/\s/g, '').latinise().toLowerCase() && member.roles.cache.some(role => role.name === modeRoles[j]))
+				currentPlayer = msg.guild.members.cache.find(member => member.displayName.replace(/\s/g, '').latinise().toLowerCase() === result[0].replace(/\s/g, '').latinise().toLowerCase() && member.roles.cache.some(role => role.name === modeRoles[j]) && !member.roles.cache.some(role => role.name === "Unverified"))
 				if (currentPlayer !== undefined)
 					break
 			}
