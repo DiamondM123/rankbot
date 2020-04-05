@@ -2,6 +2,7 @@ const Discord = require('discord.js')
 const {config} = require('dotenv')
 
 const request = require("request")
+const latinise = require('./latinise') //ty cheron and company
 
 const client = new Discord.Client()
 
@@ -105,10 +106,10 @@ client.on('message', async msg => {
 
 		if (isNaN(commandParams[1])) {
 			//extra logic for additional players
-			let currentPlayer = msg.guild.members.cache.find(member => member.displayName.toLowerCase().replace(/\s/g, '').replace("é", '') === result[0].toLowerCase().replace(/\s/g, '').replace("é", ''))
+			let currentPlayer = msg.guild.members.cache.find(member => member.displayName.replace(/\s/g, '').latinise().toLowerCase() === result[0].replace(/\s/g, '').latinise().toLowerCase())
 			if (currentPlayer === undefined) return msg.author.send("Unable to find server member with the name " + commandParams[1])
 			for (j = 0; j < modeRoles.length; j++) {
-				currentPlayer = msg.guild.members.cache.find(member => member.displayName.toLowerCase().replace(/\s/g, '').replace("é", '') === result[0].toLowerCase().replace(/\s/g, '').replace("é", '') && member.roles.cache.some(role => role.name === modeRoles[j]))
+				currentPlayer = msg.guild.members.cache.find(member => member.displayName.replace(/\s/g, '').latinise().toLowerCase() === result[0].replace(/\s/g, '').latinise().toLowerCase() && member.roles.cache.some(role => role.name === modeRoles[j]))
 				if (currentPlayer !== undefined)
 					break
 			}
@@ -131,14 +132,14 @@ client.on('message', async msg => {
 				const ranks = resultarray.slice(0, resultarray.length/2)
 				const players = resultarray.slice(resultarray.length/2, resultarray.length)
 				for (i = 0; i < players.length; i++) {
-					let currentPlayer = msg.guild.members.cache.find(member => member.displayName.toLowerCase().replace(/\s/g, '').replace("é", '') === players[i].toLowerCase().replace(/\s/g, '').replace("é", ''))
+					let currentPlayer = msg.guild.members.cache.find(member => member.displayName.replace(/\s/g, '').latinise().toLowerCase() === players[i].replace(/\s/g, '').latinise().toLowerCase())
 					if (currentPlayer === undefined) {
 						msg.author.send("Unable to find server member with the name " + players[i]).catch((e) => console.log(e))
 						continue
 					}
 					//...
 					for (j = 0; j < modeRoles.length; j++) {
-						currentPlayer = msg.guild.members.cache.find(member => member.displayName.toLowerCase().replace(/\s/g, '').replace("é", '') === players[i].toLowerCase().replace(/\s/g, '').replace("é", '') && member.roles.cache.some(role => role.name === modeRoles[j]))
+						currentPlayer = msg.guild.members.cache.find(member => member.displayName.replace(/\s/g, '').latinise().toLowerCase() === players[i].replace(/\s/g, '').latinise().toLowerCase() && member.roles.cache.some(role => role.name === modeRoles[j]))
 						if (currentPlayer !== undefined)
 							break
 					}
