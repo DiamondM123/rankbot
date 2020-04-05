@@ -88,43 +88,31 @@ client.on('message', async msg => {
 	try {
 		if (!msg.content.startsWith("!rt") && !msg.content.startsWith("!ct")) return
 		const commandParams = msg.content.split(/\s+/)
-		if (commandParams[1] === undefined || commandParams[1] === "") {
-			msg.author.send("Error. Specify a player/event")
-			return msg.delete()
-		}
+		msg.delete()
+		if (commandParams[1] === undefined || commandParams[1] === "") return msg.author.send("Error. Specify a player/event")
 		const modes = commandParams[0].split("!")
 		const globalMode = modes[1]
 
 		//console.log(msg.guild.members)
 		//...
-		if (!msg.member.hasPermission("MANAGE_ROLES")) return msg.reply("This command is for legendary bosses of the almighty MMR system only")
+		if (!msg.member.hasPermission("MANAGE_ROLES")) return msg.author.send("This command is for legendary bosses of the almighty MMR system only")
 		const rtRoles = ["RT Bronze", "RT Silver I", "RT Silver II", "RT Gold I", "RT Gold II", "RT Platinum", "RT Diamond", "RT Master"]
 		const ctRoles = ["CT Bronze", "CT Silver I", "CT Silver II", "CT Gold", "CT Platinum", "CT Diamond", "CT Master"]
 		const modeRoles = (globalMode === "rt") ? rtRoles : ctRoles
 		const result = await getRequest(globalMode, commandParams[1])
-		if (!result) {
-			msg.author.send("Error. Unable to find player/event with the name/id " + commandParams[1])
-			return msg.delete()
-		}
+		if (!result) return msg.author.send("Error. Unable to find player/event with the name/id " + commandParams[1])
 		var mentionPlayers = ''
-
 
 		if (isNaN(commandParams[1])) {
 			//extra logic for additional players
 			let currentPlayer = msg.guild.members.cache.find(member => member.displayName.toLowerCase().replace(/\s/g, '').replace("é", '') === result[0].toLowerCase().replace(/\s/g, '').replace("é", ''))
-			if (currentPlayer === undefined) {
-				msg.author.send("Unable to find server member with the name " + commandParams[1])
-				return msg.delete()
-			}
+			if (currentPlayer === undefined) return msg.author.send("Unable to find server member with the name " + commandParams[1])
 			for (j = 0; j < modeRoles.length; j++) {
 				currentPlayer = msg.guild.members.cache.find(member => member.displayName.toLowerCase().replace(/\s/g, '').replace("é", '') === result[0].toLowerCase().replace(/\s/g, '').replace("é", '') && member.roles.cache.some(role => role.name === modeRoles[j]))
 				if (currentPlayer !== undefined)
 					break
 			}
-			if (currentPlayer === undefined) {
-				msg.author.send(commandParams[1] + " does not have a rank role yet.")
-				return msg.delete()
-			}
+			if (currentPlayer === undefined) return msg.author.send(commandParams[1] + " does not have a rank role yet.")
 			//end
 			let serverRole = msg.guild.roles.cache.find(role => role.name === result[1])
 			if (!currentPlayer.roles.cache.some(role => role.name === serverRole.name)) {
@@ -175,7 +163,6 @@ client.on('message', async msg => {
 		}
 		if (mentionPlayers !== '')
 			msg.channel.send(mentionPlayers)
-		return msg.delete()
 	} catch (error) {
 		console.error('ERROR:')
         console.error(error)
