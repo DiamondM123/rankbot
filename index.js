@@ -139,7 +139,7 @@ client.on('message', async msg => {
 					}
 					//...
 					for (j = 0; j < modeRoles.length; j++) {
-						currentPlayer = msg.guild.members.cache.find(member => member.displayName.replace(/\s/g, '').latinise().toLowerCase() === players[i].replace(/\s/g, '').latinise().toLowerCase() && member.roles.cache.some(role => role.name === modeRoles[j]))
+						currentPlayer = msg.guild.members.cache.find(member => member.displayName.replace(/\s/g, '').latinise().toLowerCase() === players[i].replace(/\s/g, '').latinise().toLowerCase() && member.roles.cache.some(role => role.name === modeRoles[j]) && !member.roles.cache.some(role => role.name === "Unverified"))
 						if (currentPlayer !== undefined)
 							break
 					}
