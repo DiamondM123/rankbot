@@ -24,12 +24,17 @@ const downloadPage = (url) => {
 }
 
 const determineLatestEvent = async (mode) => {
-	let html = await downloadPage('https://mariokartboards.com/lounge/json/player.php?type=' + mode + '&all')
-	let parsedData = JSON.parse(html)
-	if (parsedData.length > 0)
-		return parsedData[0].warid
-	else
-		return false
+	try {
+		let html = await downloadPage('https://mariokartboards.com/lounge/json/event.php?type=' + mode + '&all')
+		let parsedData = JSON.parse(html)
+		if (parsedData.length > 0)
+			return parsedData[0].warid
+		else
+			return false
+	} catch (error) {
+		console.error('ERROR:')
+        console.error(error)
+	}
 }
 
 const getRequest = async (mode, warid) => {
