@@ -23,6 +23,15 @@ const downloadPage = (url) => {
     })
 }
 
+const determineLatestEvent = async (mode) => {
+	let html = await downloadPage('https://mariokartboards.com/lounge/json/player.php?type=' + mode + '&all')
+	let parsedData = JSON.parse(html)
+	if (parsedData.length > 0)
+		return parsedData[0].warid
+	else
+		return false
+}
+
 const getRequest = async (mode, warid) => {
 	var roles = [], members = []
 	try {
@@ -65,6 +74,18 @@ const getRequest = async (mode, warid) => {
 			if (parsedData.length > 1) {
 				for (i = 0; i < parsedData.length; i++) {
 					let promotion = parsedData[i].promotion
+					let currentMr = parsedData[i].current_mmr
+					let updatedMr = parsedData[i].updated_mmr
+					if (currentMr >= 3000 && updatedMr < 3000 && mode === "ct") {
+						members.push(parsedData[i].name)
+						roles.push("CT Silver I")
+						continue //in case this gets fixed
+					}
+					if (currentMr < 3000 && updatedMr >= 3000 && mode === "ct") {
+						members.push(parsedData[i].name)
+						roles.push("CT Silver II")
+						continue //in case this gets fixed
+					}
 					if (promotion.includes("Demoted")) {
 						members.push(parsedData[i].name)
 						roles.push(mode.toUpperCase() + " " + promotion.replace("Demoted ", ''))
@@ -94,30 +115,33 @@ client.on('message', async msg => {
 		if (!msg.content.startsWith("!rt") && !msg.content.startsWith("!ct")) return
 		const commandParams = msg.content.split(/\s+/)
 		msg.delete()
-		if (commandParams[1] === undefined || commandParams[1] === "") return msg.author.send("Error. Specify a player/event")
+
 		const modes = commandParams[0].split("!")
 		const globalMode = modes[1]
 
-		//console.log(msg.guild.members)
-		//...
+		var partCommandParam = commandParams[1]
+		if (commandParams[1] === undefined || commandParams[1] === "")
+			partCommandParam = await determineLatestEvent(globalMode)
+		if (!partCommandParam) return msg.author.send("Error. Unable to retrieve latest war id")
+
 		if (!msg.member.hasPermission("MANAGE_ROLES")) return msg.author.send("This command is for legendary bosses of the almighty MMR system only")
 		const rtRoles = ["RT Bronze", "RT Silver I", "RT Silver II", "RT Gold I", "RT Gold II", "RT Platinum", "RT Diamond", "RT Master"]
 		const ctRoles = ["CT Bronze", "CT Silver I", "CT Silver II", "CT Gold", "CT Platinum", "CT Diamond", "CT Master"]
 		const modeRoles = (globalMode === "rt") ? rtRoles : ctRoles
-		const result = await getRequest(globalMode, commandParams[1])
-		if (!result) return msg.author.send("Error. Unable to find player/event with the name/id " + commandParams[1])
+		const result = await getRequest(globalMode, partCommandParam)
+		if (!result) return msg.author.send("Error. Unable to find player/event with the name/id " + partCommandParam)
 		var mentionPlayers = ''
 
-		if (isNaN(commandParams[1])) {
+		if (isNaN(partCommandParam)) {
 			//extra logic for additional players
 			let currentPlayer = msg.guild.members.cache.find(member => tran_str(member.displayName) === tran_str(result[0]))
-			if (currentPlayer === undefined) return msg.author.send("Unable to find server member with the name " + commandParams[1])
+			if (currentPlayer === undefined) return msg.author.send("Unable to find server member with the name " + partCommandParam)
 			for (j = 0; j < modeRoles.length; j++) {
 				currentPlayer = msg.guild.members.cache.find(member => tran_str(member.displayName) === tran_str(result[0]) && member.roles.cache.some(role => role.name === modeRoles[j]) && !member.roles.cache.some(role => role.name === "Unverified"))
 				if (currentPlayer !== undefined)
 					break
 			}
-			if (currentPlayer === undefined) return msg.author.send(commandParams[1] + " does not have a rank role yet.")
+			if (currentPlayer === undefined) return msg.author.send(partCommandParam + " does not have a rank role yet.")
 			//end
 			let serverRole = msg.guild.roles.cache.find(role => role.name === result[1])
 			if (!currentPlayer.roles.cache.some(role => role.name === serverRole.name)) {
