@@ -85,6 +85,10 @@ const getRequest = async (mode, warid) => {
 	}
 }
 
+const transform = (inp) => {
+	return inp.replace(/\s/g, '').latinise().toLowerCase()
+}
+
 client.on('message', async msg => {
 	try {
 		if (!msg.content.startsWith("!rt") && !msg.content.startsWith("!ct")) return
@@ -106,10 +110,10 @@ client.on('message', async msg => {
 
 		if (isNaN(commandParams[1])) {
 			//extra logic for additional players
-			let currentPlayer = msg.guild.members.cache.find(member => member.displayName.replace(/\s/g, '').latinise().toLowerCase() === result[0].replace(/\s/g, '').latinise().toLowerCase())
+			let currentPlayer = msg.guild.members.cache.find(member => transform(member.displayName) === transform(result[0]))
 			if (currentPlayer === undefined) return msg.author.send("Unable to find server member with the name " + commandParams[1])
 			for (j = 0; j < modeRoles.length; j++) {
-				currentPlayer = msg.guild.members.cache.find(member => member.displayName.replace(/\s/g, '').latinise().toLowerCase() === result[0].replace(/\s/g, '').latinise().toLowerCase() && member.roles.cache.some(role => role.name === modeRoles[j]) && !member.roles.cache.some(role => role.name === "Unverified"))
+				currentPlayer = msg.guild.members.cache.find(member => transform(member.displayName) === transform(result[0]) && member.roles.cache.some(role => role.name === modeRoles[j]) && !member.roles.cache.some(role => role.name === "Unverified"))
 				if (currentPlayer !== undefined)
 					break
 			}
@@ -132,14 +136,14 @@ client.on('message', async msg => {
 				const ranks = resultarray.slice(0, resultarray.length/2)
 				const players = resultarray.slice(resultarray.length/2, resultarray.length)
 				for (i = 0; i < players.length; i++) {
-					let currentPlayer = msg.guild.members.cache.find(member => member.displayName.replace(/\s/g, '').latinise().toLowerCase() === players[i].replace(/\s/g, '').latinise().toLowerCase())
+					let currentPlayer = msg.guild.members.cache.find(member => transform(member.displayName) === transform(players[i]))
 					if (currentPlayer === undefined) {
 						msg.author.send("Unable to find server member with the name " + players[i]).catch((e) => console.log(e))
 						continue
 					}
 					//...
 					for (j = 0; j < modeRoles.length; j++) {
-						currentPlayer = msg.guild.members.cache.find(member => member.displayName.replace(/\s/g, '').latinise().toLowerCase() === players[i].replace(/\s/g, '').latinise().toLowerCase() && member.roles.cache.some(role => role.name === modeRoles[j]) && !member.roles.cache.some(role => role.name === "Unverified"))
+						currentPlayer = msg.guild.members.cache.find(member => transform(member.displayName) === transform(players[i]) && member.roles.cache.some(role => role.name === modeRoles[j]) && !member.roles.cache.some(role => role.name === "Unverified"))
 						if (currentPlayer !== undefined)
 							break
 					}
