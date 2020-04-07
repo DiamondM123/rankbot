@@ -142,7 +142,7 @@ client.on('message', async msg => {
 			let currentPlayer = msg.guild.members.cache.find(member => tran_str(member.displayName) === tran_str(result[0]))
 			if (currentPlayer === undefined) return msg.author.send("Unable to find server member with the name " + partCommandParam)
 			for (j = 0; j < modeRoles.length; j++) {
-				currentPlayer = msg.guild.members.cache.find(member => tran_str(member.displayName) === tran_str(result[0]) && member.roles.cache.some(role => role.name === modeRoles[j]) && !member.roles.cache.some(role => role.name === "Unverified") && !member.roles.cache.some(role => role.name === "Regular Tracks") && !member.roles.cache.some(role => role.name === "Custom Tracks"))
+				currentPlayer = msg.guild.members.cache.find(member => tran_str(member.displayName) === tran_str(result[0]) && member.roles.cache.some(role => role.name === modeRoles[j]) && !member.roles.cache.some(role => role.name === "Unverified"))
 				if (currentPlayer !== undefined)
 					break
 			}
@@ -172,7 +172,7 @@ client.on('message', async msg => {
 					}
 					//...
 					for (j = 0; j < modeRoles.length; j++) {
-						currentPlayer = msg.guild.members.cache.find(member => tran_str(member.displayName) === tran_str(players[i]) && member.roles.cache.some(role => role.name === modeRoles[j]) && !member.roles.cache.some(role => role.name === "Unverified") && !member.roles.cache.some(role => role.name === "Regular Tracks") && !member.roles.cache.some(role => role.name === "Custom Tracks"))
+						currentPlayer = msg.guild.members.cache.find(member => tran_str(member.displayName) === tran_str(players[i]) && member.roles.cache.some(role => role.name === modeRoles[j]) && !member.roles.cache.some(role => role.name === "Unverified"))
 						if (currentPlayer !== undefined)
 							break
 					}
