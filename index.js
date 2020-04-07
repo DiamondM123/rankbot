@@ -111,6 +111,10 @@ const getRequest = async (mode, warid) => {
 	}
 }
 
+const send_dm = (msg_o, mes) => {
+	return msg_o.author.send(mes).catch((e) => console.log("Unable to send messsages to " + msg_o.author.tag))
+}
+
 const tran_str = (inp) => {
 	return inp.replace(/\s/g, '').latinise().toLowerCase()
 }
@@ -127,26 +131,26 @@ client.on('message', async msg => {
 		var partCommandParam = commandParams[1]
 		if (commandParams[1] === undefined || commandParams[1] === "")
 			partCommandParam = await determineLatestEvent(globalMode)
-		if (!partCommandParam) return msg.author.send("Error. Unable to retrieve latest war id")
+		if (!partCommandParam) return send_dm(msg, "Error. Unable to retrieve latest war id")
 
-		if (!msg.member.hasPermission("MANAGE_ROLES")) return msg.author.send("This command is for legendary bosses of the almighty MMR system only")
+		if (!msg.member.hasPermission("MANAGE_ROLES")) return send_dm(msg, "This command is for legendary bosses of the almighty MMR system only")
 		const rtRoles = ["RT Bronze", "RT Silver I", "RT Silver II", "RT Gold I", "RT Gold II", "RT Platinum", "RT Diamond", "RT Master"]
 		const ctRoles = ["CT Bronze", "CT Silver I", "CT Silver II", "CT Gold", "CT Platinum", "CT Diamond", "CT Master"]
 		const modeRoles = (globalMode === "rt") ? rtRoles : ctRoles
 		const result = await getRequest(globalMode, partCommandParam)
-		if (!result) return msg.author.send("Error. Unable to find player/event with the name/id " + partCommandParam)
+		if (!result) return send_dm(msg, "Error. Unable to find player/event with the name/id " + partCommandParam)
 		var mentionPlayers = ''
 
 		if (isNaN(partCommandParam)) {
 			//extra logic for additional players
 			let currentPlayer = msg.guild.members.cache.find(member => tran_str(member.displayName) === tran_str(result[0]))
-			if (currentPlayer === undefined) return msg.author.send("Unable to find server member with the name " + partCommandParam)
+			if (currentPlayer === undefined) return send_dm(msg, "Unable to find server member with the name " + partCommandParam)
 			for (j = 0; j < modeRoles.length; j++) {
 				currentPlayer = msg.guild.members.cache.find(member => tran_str(member.displayName) === tran_str(result[0]) && member.roles.cache.some(role => role.name === modeRoles[j]) && !member.roles.cache.some(role => role.name === "Unverified"))
 				if (currentPlayer !== undefined)
 					break
 			}
-			if (currentPlayer === undefined) return msg.author.send(partCommandParam + " does not have a rank role yet.")
+			if (currentPlayer === undefined) return send_dm(msg, partCommandParam + " does not have a rank role yet.")
 			//end
 			let serverRole = msg.guild.roles.cache.find(role => role.name === result[1])
 			if (!currentPlayer.roles.cache.some(role => role.name === serverRole.name)) {
@@ -167,7 +171,7 @@ client.on('message', async msg => {
 				for (i = 0; i < players.length; i++) {
 					let currentPlayer = msg.guild.members.cache.find(member => tran_str(member.displayName) === tran_str(players[i]))
 					if (currentPlayer === undefined) {
-						msg.author.send("Unable to find server member with the name " + players[i]).catch((e) => console.log(e))
+						send_dm(msg, "Unable to find server member with the name " + players[i])
 						continue
 					}
 					//...
@@ -177,7 +181,7 @@ client.on('message', async msg => {
 							break
 					}
 					if (currentPlayer === undefined) {
-						msg.author.send(players[i] + " does not have a rank role yet.").catch((e) => console.log(e))
+						send_dm(msg, players[i] + " does not have a rank role yet.")
 						continue
 					}
 					//...
