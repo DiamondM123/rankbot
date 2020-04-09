@@ -112,7 +112,7 @@ const getRequest = async (mode, warid) => {
 }
 
 const send_dm = (msg_o, mes) => {
-	return msg_o.author.send(mes).catch((e) => console.log("Unable to send messsages to " + msg_o.author.tag))
+	return msg_o.author.send(mes).catch((e) => console.log("Unable to send messsages to " + msg_o.author.tag + ", who attempted to use this bot"))
 }
 
 const tran_str = (inp) => {
@@ -144,14 +144,18 @@ client.on('message', async msg => {
 		if (isNaN(partCommandParam)) {
 			//extra logic for additional players
 			let currentPlayer = msg.guild.members.cache.find(member => tran_str(member.displayName) === tran_str(result[0]))
+			let currentPlayerCollection, collectionNames = []
 			if (currentPlayer === undefined) return send_dm(msg, "Unable to find server member with the name " + partCommandParam)
 			for (j = 0; j < modeRoles.length; j++) {
 				currentPlayer = msg.guild.members.cache.find(member => tran_str(member.displayName) === tran_str(result[0]) && member.roles.cache.some(role => role.name === modeRoles[j]) && !member.roles.cache.some(role => role.name === "Unverified"))
+				currentPlayerCollection = msg.guild.members.cache.filter(member => tran_str(member.displayName) === tran_str(result[0]) && member.roles.cache.some(role => role.name === modeRoles[j]) && !member.roles.cache.some(role => role.name === "Unverified"))
 				if (currentPlayer !== undefined)
 					break
 			}
 			if (currentPlayer === undefined) return send_dm(msg, partCommandParam + " does not have a rank role yet.")
-			//end
+			currentPlayerCollection.each(member => collectionNames.push(member.user.tag))
+			if (collectionNames.length > 1)
+				msg.reply("Note: 2 players were found with the same display name: " + collectionNames.join(" & "))
 			let serverRole = msg.guild.roles.cache.find(role => role.name === result[1])
 			if (!currentPlayer.roles.cache.some(role => role.name === serverRole.name)) {
 				for (j = 0; j < modeRoles.length; j++) {
@@ -170,6 +174,7 @@ client.on('message', async msg => {
 				const players = resultarray.slice(resultarray.length/2, resultarray.length)
 				for (i = 0; i < players.length; i++) {
 					let currentPlayer = msg.guild.members.cache.find(member => tran_str(member.displayName) === tran_str(players[i]))
+					let currentPlayerCollection, collectionNames = []
 					if (currentPlayer === undefined) {
 						send_dm(msg, "Unable to find server member with the name " + players[i])
 						continue
@@ -177,6 +182,7 @@ client.on('message', async msg => {
 					//...
 					for (j = 0; j < modeRoles.length; j++) {
 						currentPlayer = msg.guild.members.cache.find(member => tran_str(member.displayName) === tran_str(players[i]) && member.roles.cache.some(role => role.name === modeRoles[j]) && !member.roles.cache.some(role => role.name === "Unverified"))
+						currentPlayerCollection = msg.guild.members.cache.filter(member => tran_str(member.displayName) === tran_str(players[i]) && member.roles.cache.some(role => role.name === modeRoles[j]) && !member.roles.cache.some(role => role.name === "Unverified"))
 						if (currentPlayer !== undefined)
 							break
 					}
@@ -184,6 +190,9 @@ client.on('message', async msg => {
 						send_dm(msg, players[i] + " does not have a rank role yet.")
 						continue
 					}
+					currentPlayerCollection.each(member => collectionNames.push(member.user.tag))
+					if (collectionNames.length > 1)
+						msg.reply("Note: 2 players were found with the same display name: " + collectionNames.join(" & "))
 					//...
 					mentionPlayers += `${currentPlayer} :` + ranks[i].replace(globalMode.toUpperCase() + " ", '').toLowerCase().replace(" ii", ': II').replace(" i", ': I').replace("platinum", "plat")
 					mentionPlayers += (mentionPlayers[mentionPlayers.length-1] === "I") ? "\n" : ":\n"
