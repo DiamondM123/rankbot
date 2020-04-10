@@ -116,6 +116,7 @@ const send_dm = (msg_o, mes) => {
 }
 
 const tran_str = (inp) => {
+	if (inp === undefined) return undefined
 	return inp.replace(/\s/g, '').latinise().toLowerCase()
 }
 
@@ -138,7 +139,7 @@ client.on('message', async msg => {
 		const ctRoles = ["CT Bronze", "CT Silver I", "CT Silver II", "CT Gold", "CT Platinum", "CT Diamond", "CT Master"]
 		const modeRoles = (globalMode === "rt") ? rtRoles : ctRoles
 		let result = await getRequest(globalMode, partCommandParam)
-		if (!result) return send_dm(msg, "Error. Unable to find player/event with the name/id " + partCommandParam)
+		if (!result && !isNaN(partCommandParam)) return send_dm(msg, "Error. Unable to find player/event with the name/id " + partCommandParam)
 		var mentionPlayers = ''
 
 		if (isNaN(partCommandParam)) {
@@ -149,14 +150,20 @@ client.on('message', async msg => {
 					//extra logic for additional players
 					let currentPlayer = msg.guild.members.cache.find(member => tran_str(member.displayName) === tran_str(result[0]))
 					let currentPlayerCollection, collectionNames = []
-					if (currentPlayer === undefined) return send_dm(msg, "Unable to find server member with the name " + partCommandParam)
+					if (currentPlayer === undefined) {
+						send_dm(msg, "Unable to find server member with the name " + partCommandParam)
+						continue
+					}
 					for (j = 0; j < modeRoles.length; j++) {
 						currentPlayer = msg.guild.members.cache.find(member => tran_str(member.displayName) === tran_str(result[0]) && member.roles.cache.some(role => role.name === modeRoles[j]) && !member.roles.cache.some(role => role.name === "Unverified"))
 						currentPlayerCollection = msg.guild.members.cache.filter(member => tran_str(member.displayName) === tran_str(result[0]) && member.roles.cache.some(role => role.name === modeRoles[j]) && !member.roles.cache.some(role => role.name === "Unverified"))
 						if (currentPlayer !== undefined)
 							break
 					}
-					if (currentPlayer === undefined) return send_dm(msg, partCommandParam + " does not have a rank role yet.")
+					if (currentPlayer === undefined) {
+						send_dm(msg, partCommandParam + " does not have a rank role yet.")
+						continue
+					}
 					currentPlayerCollection.each(member => collectionNames.push(member.user.tag))
 					if (collectionNames.length > 1)
 						msg.reply("Note: 2 players were found with the same display name: " + collectionNames.join(" & "))
