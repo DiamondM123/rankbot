@@ -137,35 +137,41 @@ client.on('message', async msg => {
 		const rtRoles = ["RT Bronze", "RT Silver I", "RT Silver II", "RT Gold I", "RT Gold II", "RT Platinum", "RT Diamond", "RT Master"]
 		const ctRoles = ["CT Bronze", "CT Silver I", "CT Silver II", "CT Gold", "CT Platinum", "CT Diamond", "CT Master"]
 		const modeRoles = (globalMode === "rt") ? rtRoles : ctRoles
-		const result = await getRequest(globalMode, partCommandParam)
+		let result = await getRequest(globalMode, partCommandParam)
 		if (!result) return send_dm(msg, "Error. Unable to find player/event with the name/id " + partCommandParam)
 		var mentionPlayers = ''
 
 		if (isNaN(partCommandParam)) {
-			//extra logic for additional players
-			let currentPlayer = msg.guild.members.cache.find(member => tran_str(member.displayName) === tran_str(result[0]))
-			let currentPlayerCollection, collectionNames = []
-			if (currentPlayer === undefined) return send_dm(msg, "Unable to find server member with the name " + partCommandParam)
-			for (j = 0; j < modeRoles.length; j++) {
-				currentPlayer = msg.guild.members.cache.find(member => tran_str(member.displayName) === tran_str(result[0]) && member.roles.cache.some(role => role.name === modeRoles[j]) && !member.roles.cache.some(role => role.name === "Unverified"))
-				currentPlayerCollection = msg.guild.members.cache.filter(member => tran_str(member.displayName) === tran_str(result[0]) && member.roles.cache.some(role => role.name === modeRoles[j]) && !member.roles.cache.some(role => role.name === "Unverified"))
-				if (currentPlayer !== undefined)
-					break
-			}
-			if (currentPlayer === undefined) return send_dm(msg, partCommandParam + " does not have a rank role yet.")
-			currentPlayerCollection.each(member => collectionNames.push(member.user.tag))
-			if (collectionNames.length > 1)
-				msg.reply("Note: 2 players were found with the same display name: " + collectionNames.join(" & "))
-			let serverRole = msg.guild.roles.cache.find(role => role.name === result[1])
-			if (!currentPlayer.roles.cache.some(role => role.name === serverRole.name)) {
-				for (j = 0; j < modeRoles.length; j++) {
-					if (currentPlayer.roles.cache.some(role => role.name === modeRoles[j]))
-						currentPlayer.roles.remove(currentPlayer.roles.cache.find(role => role.name.toLowerCase() === modeRoles[j].toLowerCase()))
+			for (i = 0; i < commandParams.length; i++) {
+				if (i !== 0 && commandParams[i] !== "np") {
+					partCommandParam = commandParams[i]
+					result = await getRequest(globalMode, partCommandParam)
+					//extra logic for additional players
+					let currentPlayer = msg.guild.members.cache.find(member => tran_str(member.displayName) === tran_str(result[0]))
+					let currentPlayerCollection, collectionNames = []
+					if (currentPlayer === undefined) return send_dm(msg, "Unable to find server member with the name " + partCommandParam)
+					for (j = 0; j < modeRoles.length; j++) {
+						currentPlayer = msg.guild.members.cache.find(member => tran_str(member.displayName) === tran_str(result[0]) && member.roles.cache.some(role => role.name === modeRoles[j]) && !member.roles.cache.some(role => role.name === "Unverified"))
+						currentPlayerCollection = msg.guild.members.cache.filter(member => tran_str(member.displayName) === tran_str(result[0]) && member.roles.cache.some(role => role.name === modeRoles[j]) && !member.roles.cache.some(role => role.name === "Unverified"))
+						if (currentPlayer !== undefined)
+							break
+					}
+					if (currentPlayer === undefined) return send_dm(msg, partCommandParam + " does not have a rank role yet.")
+					currentPlayerCollection.each(member => collectionNames.push(member.user.tag))
+					if (collectionNames.length > 1)
+						msg.reply("Note: 2 players were found with the same display name: " + collectionNames.join(" & "))
+					let serverRole = msg.guild.roles.cache.find(role => role.name === result[1])
+					if (!currentPlayer.roles.cache.some(role => role.name === serverRole.name)) {
+						for (j = 0; j < modeRoles.length; j++) {
+							if (currentPlayer.roles.cache.some(role => role.name === modeRoles[j]))
+								currentPlayer.roles.remove(currentPlayer.roles.cache.find(role => role.name.toLowerCase() === modeRoles[j].toLowerCase()))
+						}
+						let fromPenText = (commandParams[i+1] === "np") ? "" : "(from pen)"
+						currentPlayer.roles.add(serverRole.id)
+						mentionPlayers += `${currentPlayer} :` + result[1].replace(globalMode.toUpperCase() + " ", '').toLowerCase().replace(" ii", ': II').replace(" i", ': I').replace("platinum", "plat")
+						mentionPlayers += (mentionPlayers[mentionPlayers.length-1] === "I") ? ` ${fromPenText}\n` : `: ${fromPenText}\n`
+					}
 				}
-				let fromPenText = (commandParams[2] === "np") ? "" : "(from pen)"
-				currentPlayer.roles.add(serverRole.id)
-				mentionPlayers += `${currentPlayer} :` + result[1].replace(globalMode.toUpperCase() + " ", '').toLowerCase().replace(" ii", ': II').replace(" i", ': I').replace("platinum", "plat")
-				mentionPlayers += (mentionPlayers[mentionPlayers.length-1] === "I") ? ` ${fromPenText}\n` : `: ${fromPenText}\n`
 			}
 		} else {
 			if (result !== ',') {
