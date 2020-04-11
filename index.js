@@ -45,30 +45,32 @@ const getRequest = async (mode, warid) => {
 			let parsedData = JSON.parse(html)
 			let returnArray = []
 			if (parsedData.length > 0) {
-				returnArray.push(parsedData[0].name)
-				const currentMMR = parsedData[0].current_mmr
-				if (currentMMR < 2000) {
-					returnArray.push(mode.toUpperCase() + " Bronze")
-				} else if (currentMMR >= 2000 && currentMMR < 2500 && mode === "rt") {
-					returnArray.push(mode.toUpperCase() + " Silver I")
-				} else if (currentMMR >= 2000 && currentMMR < 3000 && mode === "ct") {
-					returnArray.push(mode.toUpperCase() + " Silver I")
-				} else if (currentMMR >= 2500 && currentMMR < 4000 && mode === "rt") {
-					returnArray.push(mode.toUpperCase() + " Silver II")
-				} else if (currentMMR >= 3000 && currentMMR < 4000 && mode === "ct") {
-					returnArray.push(mode.toUpperCase() + " Silver II")
-				} else if (currentMMR >= 4000 && currentMMR < 5000 && mode === "rt") {
-					returnArray.push(mode.toUpperCase() + " Gold I")
-				} else if (currentMMR >= 5000 && currentMMR < 6000 && mode === "rt") {
-					returnArray.push(mode.toUpperCase() + " Gold II")
-				} else if (currentMMR >= 4000 && currentMMR < 6000 && mode === "ct") {
-					returnArray.push(mode.toUpperCase() + " Gold")
-				} else if (currentMMR >= 6000 && currentMMR < 8000) {
-					returnArray.push(mode.toUpperCase() + " Platinum")
-				} else if (currentMMR >= 8000 && currentMMR < 10000) {
-					returnArray.push(mode.toUpperCase() + " Diamond")
-				} else if (currentMMR >= 10000) {
-					returnArray.push(mode.toUpperCase() + " Master")
+				for (i = 0; i < parsedData.length; i++) {
+					returnArray.push(parsedData[i].name)
+					const currentMMR = parsedData[i].current_mmr
+					if (currentMMR < 2000) {
+						returnArray.push(mode.toUpperCase() + " Bronze")
+					} else if (currentMMR >= 2000 && currentMMR < 2500 && mode === "rt") {
+						returnArray.push(mode.toUpperCase() + " Silver I")
+					} else if (currentMMR >= 2000 && currentMMR < 3000 && mode === "ct") {
+						returnArray.push(mode.toUpperCase() + " Silver I")
+					} else if (currentMMR >= 2500 && currentMMR < 4000 && mode === "rt") {
+						returnArray.push(mode.toUpperCase() + " Silver II")
+					} else if (currentMMR >= 3000 && currentMMR < 4000 && mode === "ct") {
+						returnArray.push(mode.toUpperCase() + " Silver II")
+					} else if (currentMMR >= 4000 && currentMMR < 5000 && mode === "rt") {
+						returnArray.push(mode.toUpperCase() + " Gold I")
+					} else if (currentMMR >= 5000 && currentMMR < 6000 && mode === "rt") {
+						returnArray.push(mode.toUpperCase() + " Gold II")
+					} else if (currentMMR >= 4000 && currentMMR < 6000 && mode === "ct") {
+						returnArray.push(mode.toUpperCase() + " Gold")
+					} else if (currentMMR >= 6000 && currentMMR < 8000) {
+						returnArray.push(mode.toUpperCase() + " Platinum")
+					} else if (currentMMR >= 8000 && currentMMR < 10000) {
+						returnArray.push(mode.toUpperCase() + " Diamond")
+					} else if (currentMMR >= 10000) {
+						returnArray.push(mode.toUpperCase() + " Master")
+					}
 				}
 			} else
 				return false
@@ -138,36 +140,70 @@ client.on('message', async msg => {
 		const rtRoles = ["RT Bronze", "RT Silver I", "RT Silver II", "RT Gold I", "RT Gold II", "RT Platinum", "RT Diamond", "RT Master"]
 		const ctRoles = ["CT Bronze", "CT Silver I", "CT Silver II", "CT Gold", "CT Platinum", "CT Diamond", "CT Master"]
 		const modeRoles = (globalMode === "rt") ? rtRoles : ctRoles
+		let allnans
+		if (isNaN(commandParams[1])) {
+			allnans = true
+		} else {
+			allnans = false
+		}
+		if (commandParams.length > 2) {
+			for (i = 0; i < commandParams.length; i++) {
+				if (allnans) {
+					if (!isNaN(commandParams[i])) {
+						return msg.reply("There are differing value types in your arguments")
+					}
+				} else {
+					if (isNaN(commandParams[i])) {
+						return msg.reply("There are differing value types in your arguments")
+					}
+				}
+			}
+		}
 		let result = await getRequest(globalMode, partCommandParam)
 		if (!result && !isNaN(partCommandParam)) return send_dm(msg, "Error. Unable to find player/event with the name/id " + partCommandParam)
 		var mentionPlayers = ''
+		let resultParamsArray = []
 
 		if (isNaN(partCommandParam)) {
 			for (i = 0; i < commandParams.length; i++) {
 				if (i !== 0 && commandParams[i] !== "np") {
-					partCommandParam = commandParams[i]
-					result = await getRequest(globalMode, partCommandParam)
+					resultParamsArray.push(commandParams[i])
+				}
+			}
+			result = await getRequest(globalMode, resultParamsArray.join(","))
+			if (!result) return send_dm(msg, "Error. Unable to find players with the name(s) " + resultParamsArray.join(","))
+			for (i = 0; i < commandParams.length; i++) {
+				let checking = true
+				for (j = 0; j < result.length; j++) {
+					if (tran_str(commandParams[i]) === tran_str(result[j]))
+						checking = false
+				}
+				if (checking && i !== 0 && commandParams[i] !== "np")
+					send_dm(msg, "Unable to find server member with the name " + commandParams[i])
+			}
+			for (i = 0; i < result.length; i++) {
+				if (i % 2 === 0) {
 					//extra logic for additional players
-					let currentPlayer = msg.guild.members.cache.find(member => tran_str(member.displayName) === tran_str(result[0]))
+					let currentPlayer = msg.guild.members.cache.find(member => tran_str(member.displayName) === tran_str(result[i]))
 					let currentPlayerCollection, collectionNames = []
 					if (currentPlayer === undefined) {
-						send_dm(msg, "Unable to find server member with the name " + partCommandParam)
+						send_dm(msg, "Unable to find server member with the name " + result[i])
 						continue
 					}
 					for (j = 0; j < modeRoles.length; j++) {
-						currentPlayer = msg.guild.members.cache.find(member => tran_str(member.displayName) === tran_str(result[0]) && member.roles.cache.some(role => role.name === modeRoles[j]) && !member.roles.cache.some(role => role.name === "Unverified"))
-						currentPlayerCollection = msg.guild.members.cache.filter(member => tran_str(member.displayName) === tran_str(result[0]) && member.roles.cache.some(role => role.name === modeRoles[j]) && !member.roles.cache.some(role => role.name === "Unverified"))
+						currentPlayer = msg.guild.members.cache.find(member => tran_str(member.displayName) === tran_str(result[i]) && member.roles.cache.some(role => role.name === modeRoles[j]) && !member.roles.cache.some(role => role.name === "Unverified"))
+						currentPlayerCollection = msg.guild.members.cache.filter(member => tran_str(member.displayName) === tran_str(result[i]) && member.roles.cache.some(role => role.name === modeRoles[j]) && !member.roles.cache.some(role => role.name === "Unverified"))
 						if (currentPlayer !== undefined)
 							break
 					}
 					if (currentPlayer === undefined) {
-						send_dm(msg, partCommandParam + " does not have a rank role yet.")
+						send_dm(msg, result[i] + " does not have a rank role yet.")
 						continue
 					}
 					currentPlayerCollection.each(member => collectionNames.push(member.user.tag))
 					if (collectionNames.length > 1)
 						msg.reply("Note: 2 players were found with the same display name: " + collectionNames.join(" & "))
-					let serverRole = msg.guild.roles.cache.find(role => role.name === result[1])
+					let serverRole = msg.guild.roles.cache.find(role => role.name === result[i+1])
 					if (!currentPlayer.roles.cache.some(role => role.name === serverRole.name)) {
 						for (j = 0; j < modeRoles.length; j++) {
 							if (currentPlayer.roles.cache.some(role => role.name === modeRoles[j]))
@@ -175,12 +211,13 @@ client.on('message', async msg => {
 						}
 						let fromPenText = (commandParams[i+1] === "np") ? "" : "(from pen)"
 						currentPlayer.roles.add(serverRole.id)
-						mentionPlayers += `${currentPlayer} :` + result[1].replace(globalMode.toUpperCase() + " ", '').toLowerCase().replace(" ii", ': II').replace(" i", ': I').replace("platinum", "plat")
+						mentionPlayers += `${currentPlayer} :` + result[i+1].replace(globalMode.toUpperCase() + " ", '').toLowerCase().replace(" ii", ': II').replace(" i", ': I').replace("platinum", "plat")
 						mentionPlayers += (mentionPlayers[mentionPlayers.length-1] === "I") ? ` ${fromPenText}\n` : `: ${fromPenText}\n`
 					}
 				}
 			}
 		} else {
+			if (commandParams.length > 2) return msg.reply("Error. Cannot do multiple events at a time")
 			if (result !== ',') {
 				let resultarray = result.split(",")
 				const ranks = resultarray.slice(0, resultarray.length/2)
