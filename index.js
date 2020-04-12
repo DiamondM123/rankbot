@@ -122,6 +122,11 @@ const tran_str = (inp) => {
 	return inp.replace(/\s/g, '').latinise().toLowerCase()
 }
 
+const emoji = (inp, msg_o) => {
+	let theEmoji = msg_o.guild.emojis.cache.find(emoji => emoji.name === inp)
+	return ("<:" + inp + ":" + theEmoji.id.toString() + ">")
+}
+
 client.on('message', async msg => {
 	try {
 		if (!msg.content.startsWith("!rt") && !msg.content.startsWith("!ct")) return
@@ -211,7 +216,8 @@ client.on('message', async msg => {
 						}
 						let fromPenText = (commandParams[Math.floor(i/2)+2] === "np") ? "" : "(from pen)"
 						currentPlayer.roles.add(serverRole.id)
-						mentionPlayers += `${currentPlayer} :` + result[i+1].replace(globalMode.toUpperCase() + " ", '').toLowerCase().replace(" ii", ': II').replace(" i", ': I').replace("platinum", "plat")
+						mentionPlayers += `${currentPlayer} ` + emoji(result[i+1].replace("platinum", "plat").replace(/\s/g, '').replace(/[I]/g, '').replace("RT", '').replace('CT', '').toLowerCase(), msg)
+						mentionPlayers += result[i+1].includes("II") ? " II" : result[i+1].includes("I") ? " I" : ""
 						mentionPlayers += (mentionPlayers[mentionPlayers.length-1] === "I") ? ` ${fromPenText}\n` : `: ${fromPenText}\n`
 					}
 				}
@@ -244,8 +250,8 @@ client.on('message', async msg => {
 					if (collectionNames.length > 1)
 						msg.reply("Note: 2 players were found with the same display name: " + collectionNames.join(" & "))
 					//...
-					mentionPlayers += `${currentPlayer} :` + ranks[i].replace(globalMode.toUpperCase() + " ", '').toLowerCase().replace(" ii", ': II').replace(" i", ': I').replace("platinum", "plat")
-					mentionPlayers += (mentionPlayers[mentionPlayers.length-1] === "I") ? "\n" : ":\n"
+					mentionPlayers += `${currentPlayer} ` + emoji(ranks[i].replace("platinum", "plat").replace(/\s/g, '').replace(/[I]/g, '').replace("RT", '').replace('CT', '').toLowerCase(), msg)
+					mentionPlayers += ranks[i].includes("II") ? " II" : result[i+1].includes("I") ? " I" : ""
 					let serverRole = msg.guild.roles.cache.find(role => role.name === ranks[i])
 					const specialRole = modeRoles[modeRoles.indexOf(ranks[i])]
 					for (j = 0; j < modeRoles.length; j++) {
