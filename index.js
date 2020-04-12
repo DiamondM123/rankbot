@@ -28,7 +28,7 @@ const determineLatestEvent = async (mode) => {
 		let html = await downloadPage('https://mariokartboards.com/lounge/json/event.php?type=' + mode + '&all')
 		let parsedData = JSON.parse(html)
 		if (parsedData.length > 0)
-			return parsedData[0].warid
+			return parsedData[0].warid.toString()
 		else
 			return false
 	} catch (error) {
@@ -209,16 +209,16 @@ client.on('message', async msg => {
 					if (collectionNames.length > 1)
 						msg.reply("Note: 2 players were found with the same display name: " + collectionNames.join(" & "))
 					let serverRole = msg.guild.roles.cache.find(role => role.name === result[i+1])
-					if (!currentPlayer.roles.cache.some(role => role.name === serverRole.name)) {
+					if (!currentPlayer.roles.cache.some(role => role.name.toLowerCase() === serverRole.name.toLowerCase())) {
 						for (j = 0; j < modeRoles.length; j++) {
 							if (currentPlayer.roles.cache.some(role => role.name === modeRoles[j]))
 								currentPlayer.roles.remove(currentPlayer.roles.cache.find(role => role.name.toLowerCase() === modeRoles[j].toLowerCase()))
 						}
-						let fromPenText = (commandParams[Math.floor(i/2)+2] === "np") ? "" : "(from pen)"
+						let fromPenText = (commandParams[i+2] === "np") ? "" : "(from pen)"
 						currentPlayer.roles.add(serverRole.id)
-						mentionPlayers += `${currentPlayer} ` + emoji(result[i+1].replace("platinum", "plat").replace(/\s/g, '').replace(/[I]/g, '').replace("RT", '').replace('CT', '').toLowerCase(), msg)
+						mentionPlayers += `${currentPlayer} ` + emoji(result[i+1].replace("Platinum", "plat").replace(/\s/g, '').replace(/[I]/g, '').replace("RT", '').replace('CT', '').toLowerCase(), msg)
 						mentionPlayers += result[i+1].includes("II") ? " II" : result[i+1].includes("I") ? " I" : ""
-						mentionPlayers += (mentionPlayers[mentionPlayers.length-1] === "I") ? ` ${fromPenText}\n` : `: ${fromPenText}\n`
+						mentionPlayers += ` ${fromPenText}\n`
 					}
 				}
 			}
@@ -250,9 +250,10 @@ client.on('message', async msg => {
 					if (collectionNames.length > 1)
 						msg.reply("Note: 2 players were found with the same display name: " + collectionNames.join(" & "))
 					//...
-					mentionPlayers += `${currentPlayer} ` + emoji(ranks[i].replace("platinum", "plat").replace(/\s/g, '').replace(/[I]/g, '').replace("RT", '').replace('CT', '').toLowerCase(), msg)
-					mentionPlayers += ranks[i].includes("II") ? " II" : result[i+1].includes("I") ? " I" : ""
-					let serverRole = msg.guild.roles.cache.find(role => role.name === ranks[i])
+					console.log(ranks[i].replace("Platinum", "plat").replace(/\s/g, '').replace(/[I]/g, '').replace("RT", '').replace('CT', '').toLowerCase().replace("slver", "silver"))
+					mentionPlayers += `${currentPlayer} ` + emoji(ranks[i].replace("Platinum", "plat").replace(/\s/g, '').replace(/[I]/g, '').replace("RT", '').replace('CT', '').toLowerCase().replace("slver", "silver"), msg)
+					mentionPlayers += ranks[i].includes("II") ? " II\n" : ranks[i].includes("I") ? " I\n" : "\n"
+					let serverRole = msg.guild.roles.cache.find(role => role.name.toLowerCase() === ranks[i].toLowerCase())
 					const specialRole = modeRoles[modeRoles.indexOf(ranks[i])]
 					for (j = 0; j < modeRoles.length; j++) {
 						if (modeRoles[j] !== specialRole) {
