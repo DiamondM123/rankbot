@@ -127,9 +127,58 @@ const emoji = (inp, msg_o) => {
 	return ("<:" + inp + ":" + theEmoji.id.toString() + ">")
 }
 
+const checkForDuplicateRoles = (rolesArr, player) => {
+	let roleCount = 0
+	rolesArr.forEach((roleVal) => {
+		if (player.roles.cache.some(role => role.name === roleVal)) {
+			roleCount++
+		}
+	})
+	if (roleCount > 1)
+		return true
+	else
+		return false
+}
+
+const findDuplicatePlayers = (arra1) => {
+    let object = {};
+    let result = [];
+    arra1.forEach(function (item) {
+    	if(!object[item])
+        	object[item] = 0;
+        object[item] += 1;
+    })
+    for (var prop in object) {
+    	if(object[prop] >= 2) {
+        	result.push(prop);
+    	}
+    }
+    return result;
+}
+
+const removeDuplicates = (array) => {
+  let x = {};
+  array.forEach(function(i) {
+  	if(!x[i]) {
+    	x[i] = true
+    }
+  })
+  return Object.keys(x)
+};
+
 client.on('message', async msg => {
 	try {
-		if (!msg.content.startsWith("!rt") && !msg.content.startsWith("!ct")) return
+		if (!msg.content.startsWith("!rt") && !msg.content.startsWith("!ct") && !msg.content.startsWith("!dp")) return
+		if (msg.content.startsWith("!dp")) {
+			let memberList = []
+			msg.guild.members.cache.each(member => memberList.push(member.displayName))
+			for (i = 0; i < memberList.length; i++)
+				memberList[i] = tran_str(memberList[i])
+			let duplicateValues = findDuplicatePlayers(memberList)
+			let listStr = duplicateValues.length !== 0 ? duplicateValues.join(", ") : "None"
+			return msg.channel.send("Duplicate Display Names List: " + listStr)
+		}
+		//START
 		const commandParams = msg.content.split(/\s+/)
 		msg.delete()
 
@@ -144,6 +193,7 @@ client.on('message', async msg => {
 		if (!msg.member.hasPermission("MANAGE_ROLES")) return send_dm(msg, "This command is for legendary bosses of the almighty MMR system only")
 		const rtRoles = ["RT Bronze", "RT Silver I", "RT Silver II", "RT Gold I", "RT Gold II", "RT Platinum", "RT Diamond", "RT Master"]
 		const ctRoles = ["CT Bronze", "CT Silver I", "CT Silver II", "CT Gold", "CT Platinum", "CT Diamond", "CT Master"]
+		const specialRoles = ["Boss", "Custom Track Arbitrator", "Lower Tier Arbitrator", "Higher Tier Arbitrator", "LT RT Reporter", "LT CT Reporter"]
 		const modeRoles = (globalMode === "rt") ? rtRoles : ctRoles
 		let allnans
 		if (isNaN(commandParams[1])) {
@@ -197,17 +247,22 @@ client.on('message', async msg => {
 					}
 					for (j = 0; j < modeRoles.length; j++) {
 						currentPlayer = msg.guild.members.cache.find(member => tran_str(member.displayName) === tran_str(result[i]) && member.roles.cache.some(role => role.name === modeRoles[j]) && !member.roles.cache.some(role => role.name === "Unverified"))
-						currentPlayerCollection = msg.guild.members.cache.filter(member => tran_str(member.displayName) === tran_str(result[i]) && member.roles.cache.some(role => role.name === modeRoles[j]) && !member.roles.cache.some(role => role.name === "Unverified"))
 						if (currentPlayer !== undefined)
 							break
+					}
+					for (j = 0; j < modeRoles.length; j++) {
+						currentPlayerCollection = msg.guild.members.cache.filter(member => tran_str(member.displayName) === tran_str(result[i]) && member.roles.cache.some(role => role.name === modeRoles[j]) && !member.roles.cache.some(role => role.name === "Unverified"))
+						if (currentPlayerCollection !== undefined)
+							currentPlayerCollection.each(member => collectionNames.push(member.user.tag))
 					}
 					if (currentPlayer === undefined) {
 						send_dm(msg, result[i] + " does not have a rank role yet.")
 						continue
 					}
-					currentPlayerCollection.each(member => collectionNames.push(member.user.tag))
+					let hasDupRoles = checkForDuplicateRoles(modeRoles, currentPlayer)
+					collectionNames = removeDuplicates(collectionNames)
 					if (collectionNames.length > 1)
-						msg.reply("Note: 2 players were found with the same display name: " + collectionNames.join(" & "))
+						msg.reply("Multiple players were found with the same display name: " + collectionNames.join(" & "))
 					let serverRole = msg.guild.roles.cache.find(role => role.name === result[i+1])
 					if (!currentPlayer.roles.cache.some(role => role.name.toLowerCase() === serverRole.name.toLowerCase())) {
 						for (j = 0; j < modeRoles.length; j++) {
@@ -220,6 +275,8 @@ client.on('message', async msg => {
 						mentionPlayers += result[i+1].includes("II") ? " II" : result[i+1].includes("I") ? " I" : ""
 						mentionPlayers += ` ${fromPenText}\n`
 					}
+					if (hasDupRoles)
+						msg.reply(`${currentPlayer.displayName} has multiple ${globalMode.toUpperCase()} roles but should be ${serverRole.name}. Double check if they promoted/demoted to a temprole`)
 				}
 			}
 		} else {
@@ -229,6 +286,7 @@ client.on('message', async msg => {
 				const ranks = resultarray.slice(0, resultarray.length/2)
 				const players = resultarray.slice(resultarray.length/2, resultarray.length)
 				for (i = 0; i < players.length; i++) {
+					let hasSpecialRole = false
 					let currentPlayer = msg.guild.members.cache.find(member => tran_str(member.displayName) === tran_str(players[i]))
 					let currentPlayerCollection, collectionNames = []
 					if (currentPlayer === undefined) {
@@ -238,15 +296,29 @@ client.on('message', async msg => {
 					//...
 					for (j = 0; j < modeRoles.length; j++) {
 						currentPlayer = msg.guild.members.cache.find(member => tran_str(member.displayName) === tran_str(players[i]) && member.roles.cache.some(role => role.name === modeRoles[j]) && !member.roles.cache.some(role => role.name === "Unverified"))
-						currentPlayerCollection = msg.guild.members.cache.filter(member => tran_str(member.displayName) === tran_str(players[i]) && member.roles.cache.some(role => role.name === modeRoles[j]) && !member.roles.cache.some(role => role.name === "Unverified"))
 						if (currentPlayer !== undefined)
 							break
+					}
+					for (j = 0; j < modeRoles.length; j++) {
+						currentPlayerCollection = msg.guild.members.cache.filter(member => tran_str(member.displayName) === tran_str(players[i]) && member.roles.cache.some(role => role.name === modeRoles[j]) && !member.roles.cache.some(role => role.name === "Unverified"))
+						if (currentPlayerCollection !== undefined)
+							currentPlayerCollection.each(member => collectionNames.push(member.user.tag))
+					}
+					if (currentPlayer === undefined) {
+						for (j = 0; j < specialRoles.length; j++) {
+							currentPlayer = msg.guild.members.cache.find(member => tran_str(member.displayName) === tran_str(players[i]) && member.roles.cache.some(role => role.name === specialRoles[j]) && !member.roles.cache.some(role => role.name === "Unverified"))
+							if (currentPlayer !== undefined) {
+								hasSpecialRole = true
+								break
+							}
+						}
 					}
 					if (currentPlayer === undefined) {
 						send_dm(msg, players[i] + " does not have a rank role yet.")
 						continue
 					}
-					currentPlayerCollection.each(member => collectionNames.push(member.user.tag))
+					let hasDupRoles = checkForDuplicateRoles(modeRoles, currentPlayer)
+					collectionNames = removeDuplicates(collectionNames)
 					if (collectionNames.length > 1)
 						msg.reply("Note: 2 players were found with the same display name: " + collectionNames.join(" & "))
 					//...
@@ -256,11 +328,14 @@ client.on('message', async msg => {
 					const specialRole = modeRoles[modeRoles.indexOf(ranks[i])]
 					for (j = 0; j < modeRoles.length; j++) {
 						if (modeRoles[j] !== specialRole) {
-							if (currentPlayer.roles.cache.some(role => role.name === modeRoles[j]))
+							if (currentPlayer.roles.cache.some(role => role.name === modeRoles[j]) && !hasDupRoles)
 								currentPlayer.roles.remove(currentPlayer.roles.cache.find(role => role.name.toLowerCase() === modeRoles[j].toLowerCase()))
 						}
 					}
-					currentPlayer.roles.add(serverRole.id)
+					if (!hasSpecialRole)
+						currentPlayer.roles.add(serverRole.id)
+					if (hasDupRoles)
+						msg.reply(`${currentPlayer.displayName} has multiple ${globalMode.toUpperCase()} roles. Please check if they promoted/demoted to a temprole`)
 				}
 			}
 		}
