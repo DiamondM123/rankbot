@@ -169,6 +169,7 @@ const removeDuplicates = (array) => {
 client.on('message', async msg => {
 	try {
 		if (!msg.content.startsWith("!rt") && !msg.content.startsWith("!ct") && !msg.content.startsWith("!dp")) return
+		if (!msg.member.hasPermission("MANAGE_ROLES")) return msg.reply("This is only usable by almighty MMR caretakers")
 		if (msg.content.startsWith("!dp")) {
 			let memberList = []
 			msg.guild.members.cache.each(member => memberList.push(member.displayName))
@@ -176,7 +177,8 @@ client.on('message', async msg => {
 				memberList[i] = tran_str(memberList[i])
 			let duplicateValues = findDuplicatePlayers(memberList)
 			let listStr = duplicateValues.length !== 0 ? duplicateValues.join(", ") : "None"
-			return msg.channel.send("Duplicate Display Names List: " + listStr)
+			msg.delete()
+			return msg.channel.send("Players with similar display names in this server: " + listStr)
 		}
 		//START
 		const commandParams = msg.content.split(/\s+/)
@@ -190,7 +192,6 @@ client.on('message', async msg => {
 			partCommandParam = await determineLatestEvent(globalMode)
 		if (!partCommandParam) return send_dm(msg, "Error. Unable to retrieve latest war id")
 
-		if (!msg.member.hasPermission("MANAGE_ROLES")) return send_dm(msg, "This command is for legendary bosses of the almighty MMR system only")
 		const rtRoles = ["RT Bronze", "RT Silver I", "RT Silver II", "RT Gold I", "RT Gold II", "RT Platinum", "RT Diamond", "RT Master"]
 		const ctRoles = ["CT Bronze", "CT Silver I", "CT Silver II", "CT Gold", "CT Platinum", "CT Diamond", "CT Master"]
 		const specialRoles = ["Boss", "Custom Track Arbitrator", "Lower Tier Arbitrator", "Higher Tier Arbitrator", "LT RT Reporter", "LT CT Reporter"]
