@@ -83,23 +83,166 @@ const getRequest = async (mode, warid) => {
 					let promotion = parsedData[i].promotion
 					let currentMr = parsedData[i].current_mmr
 					let updatedMr = parsedData[i].updated_mmr
+
+					//RTROLES
+					if (currentMr >= 2000 && updatedMr < 2000 && mode === "rt") {
+						members.push(parsedData[i].name)
+						roles.push("RT Bronze")
+						continue
+					}
+
+					if (currentMr < 2000 && updatedMr >= 2000 && mode === "rt") {
+						members.push(parsedData[i].name)
+						roles.push("RT Silver I")
+						continue
+					}
+					if (currentMr >= 2500 && updatedMr < 2500 && mode === "rt") {
+						members.push(parsedData[i].name)
+						roles.push("RT Silver I")
+						continue
+					}
+
+					if (currentMr >= 4000 && updatedMr < 4000 && mode === "rt") {
+						members.push(parsedData[i].name)
+						roles.push("RT Silver II")
+						continue
+					}
+
+					if (currentMr < 2500 && updatedMr >= 2500 && mode === "rt") {
+						members.push(parsedData[i].name)
+						roles.push("RT Silver II")
+						continue
+					}
+
+					if (currentMr >= 5000 && updatedMr < 5000 && mode === "rt") {
+						members.push(parsedData[i].name)
+						roles.push("RT Gold I")
+						continue
+					}
+
+					if (currentMr < 4000 && updatedMr >= 4000 && mode === "rt") {
+						members.push(parsedData[i].name)
+						roles.push("RT Gold I")
+						continue
+					}
+
+					if (currentMr >= 6000 && updatedMr < 6000 && mode === "rt") {
+						members.push(parsedData[i].name)
+						roles.push("RT Gold II")
+						continue
+					}
+
+					if (currentMr < 5000 && updatedMr >= 5000 && mode === "rt") {
+						members.push(parsedData[i].name)
+						roles.push("RT Gold II")
+						continue
+					}
+
+					if (currentMr >= 8000 && updatedMr < 8000 && mode === "rt") {
+						members.push(parsedData[i].name)
+						roles.push("RT Platinum")
+						continue
+					}
+
+					if (currentMr < 6000 && updatedMr >= 6000 && mode === "rt") {
+						members.push(parsedData[i].name)
+						roles.push("RT Platinum")
+						continue
+					}
+
+					if (currentMr >= 10000 && updatedMr < 10000 && mode === "rt") {
+						members.push(parsedData[i].name)
+						roles.push("RT Diamond")
+						continue
+					}
+
+					if (currentMr < 8000 && updatedMr >= 8000 && mode === "rt") {
+						members.push(parsedData[i].name)
+						roles.push("RT Diamond")
+						continue
+					}
+
+					if (currentMr < 10000 && updatedMr >= 10000 && mode === "rt") {
+						members.push(parsedData[i].name)
+						roles.push("RT Master")
+						continue
+					}
+
+					//CTROLES
+					if (currentMr >= 2000 && updatedMr < 2000 && mode === "ct") {
+						members.push(parsedData[i].name)
+						roles.push("CT Bronze")
+						continue
+					}
+					if (currentMr < 2000 && updatedMr >= 2000 && mode === "ct") {
+						members.push(parsedData[i].name)
+						roles.push("CT Silver I")
+						continue
+					}
 					if (currentMr >= 3000 && updatedMr < 3000 && mode === "ct") {
 						members.push(parsedData[i].name)
 						roles.push("CT Silver I")
-						continue //in case this gets fixed
+						continue
+					}
+
+					if (currentMr >= 4000 && updatedMr < 4000 && mode === "ct") {
+						members.push(parsedData[i].name)
+						roles.push("CT Silver II")
+						continue
 					}
 					if (currentMr < 3000 && updatedMr >= 3000 && mode === "ct") {
 						members.push(parsedData[i].name)
 						roles.push("CT Silver II")
-						continue //in case this gets fixed
+						continue
 					}
-					if (promotion.includes("Demoted")) {
+
+					if (currentMr >= 6000 && updatedMr < 6000 && mode === "ct") {
 						members.push(parsedData[i].name)
-						roles.push(mode.toUpperCase() + " " + promotion.replace("Demoted ", ''))
-					} else if (promotion.includes("Promoted")) {
-						members.push(parsedData[i].name)
-						roles.push(mode.toUpperCase() + " " + promotion.replace("Promoted ", ''))
+						roles.push("CT Gold")
+						continue
 					}
+					if (currentMr < 4000 && updatedMr >= 4000 && mode === "ct") {
+						members.push(parsedData[i].name)
+						roles.push("CT Gold")
+						continue
+					}
+
+					if (currentMr >= 8000 && updatedMr < 8000 && mode === "ct") {
+						members.push(parsedData[i].name)
+						roles.push("CT Platinum")
+						continue
+					}
+					if (currentMr < 6000 && updatedMr >= 6000 && mode === "ct") {
+						members.push(parsedData[i].name)
+						roles.push("CT Platinum")
+						continue
+					}
+
+					if (currentMr >= 10000 && updatedMr < 10000 && mode === "ct") {
+						members.push(parsedData[i].name)
+						roles.push("CT Diamond")
+						continue
+					}
+					if (currentMr < 8000 && updatedMr >= 8000 && mode === "ct") {
+						members.push(parsedData[i].name)
+						roles.push("CT Diamond")
+						continue
+					}
+
+					if (currentMr < 10000 && updatedMr >= 10000 && mode === "ct") {
+						members.push(parsedData[i].name)
+						roles.push("CT Master")
+						continue
+					}
+
+					// OLD METHOD
+					// if (promotion.includes("Demoted")) {
+					// 	members.push(parsedData[i].name)
+					// 	roles.push(mode.toUpperCase() + " " + promotion.replace("Demoted ", ''))
+					// } else if (promotion.includes("Promoted")) {
+					// 	members.push(parsedData[i].name)
+					// 	roles.push(mode.toUpperCase() + " " + promotion.replace("Promoted ", ''))
+					// }
 				}
 			} else
 				return false
