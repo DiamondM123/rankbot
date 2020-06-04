@@ -313,7 +313,7 @@ client.on('message', async msg => {
 	try {
 		msg.content = msg.content.toLowerCase()
 		if (!msg.content.startsWith("!rt") && !msg.content.startsWith("!ct") && !msg.content.startsWith("!dp")) return
-		if (!msg.member.hasPermission("MANAGE_ROLES")) return msg.reply("This is only usable by almighty MMR caretakers")
+		if (!msg.member.hasPermission("MANAGE_ROLES")) return msg.reply("You do not have permissions to use this")
 		if (msg.content.startsWith("!dp")) {
 			let memberList = []
 			msg.guild.members.cache.each(member => memberList.push(member.displayName))
@@ -321,7 +321,6 @@ client.on('message', async msg => {
 				memberList[i] = tran_str(memberList[i])
 			let duplicateValues = findDuplicatePlayers(memberList)
 			let listStr = duplicateValues.length !== 0 ? duplicateValues.join(", ") : "None"
-			msg.delete()
 			return msg.channel.send("Players with similar display names in this server: " + listStr)
 		}
 		//START
