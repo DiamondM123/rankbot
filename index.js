@@ -311,6 +311,7 @@ const removeDuplicates = (array) => {
 
 client.on('message', async msg => {
 	try {
+		msg.content = msg.content.toLowerCase()
 		if (!msg.content.startsWith("!rt") && !msg.content.startsWith("!ct") && !msg.content.startsWith("!dp")) return
 		if (!msg.member.hasPermission("MANAGE_ROLES")) return msg.reply("This is only usable by almighty MMR caretakers")
 		if (msg.content.startsWith("!dp")) {
