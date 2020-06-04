@@ -339,15 +339,10 @@ client.on('message', async msg => {
 		const ctRoles = ["CT Bronze", "CT Silver I", "CT Silver II", "CT Gold", "CT Platinum", "CT Diamond", "CT Master"]
 		const specialRoles = ["Boss", "Custom Track Arbitrator", "Lower Tier Arbitrator", "Higher Tier Arbitrator", "LT RT Reporter", "LT CT Reporter"]
 		const modeRoles = (globalMode === "rt") ? rtRoles : ctRoles
-		let allnans
-		if (isNaN(commandParams[1])) {
-			allnans = true
-		} else {
-			allnans = false
-		}
+		
 		if (commandParams.length > 2) {
 			for (i = 0; i < commandParams.length; i++) {
-				if (allnans) {
+				if (isNaN(commandParams[1])) {
 					if (!isNaN(commandParams[i])) {
 						return msg.reply("There are differing value types in your arguments")
 					}
