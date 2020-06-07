@@ -313,7 +313,7 @@ client.on('message', async msg => {
 	try {
 		msg.content = msg.content.toLowerCase()
 		if (!msg.content.startsWith("!rt") && !msg.content.startsWith("!ct") && !msg.content.startsWith("!dp")) return
-		if (!msg.member.hasPermission("MANAGE_ROLES")) return msg.reply("You do not have permissions to use this")
+		if (!msg.member.hasPermission("MANAGE_ROLES")) return// msg.reply("You do not have permissions to use this")
 		if (msg.content.startsWith("!dp")) {
 			let memberList = []
 			msg.guild.members.cache.each(member => memberList.push(member.displayName))
@@ -410,7 +410,7 @@ client.on('message', async msg => {
 						}
 						let fromPenText = (commandParams[i+2] === "np") ? "" : "(from pen)"
 						currentPlayer.roles.add(serverRole.id)
-						mentionPlayers += `${currentPlayer} ` + emoji(result[i+1].replace("Platinum", "plat").replace(/\s/g, '').replace(/[I]/g, '').replace("RT", '').replace('CT', '').toLowerCase(), msg)
+						mentionPlayers += `<@${currentPlayer.id}> ` + emoji(result[i+1].replace("Platinum", "plat").replace(/\s/g, '').replace(/[I]/g, '').replace("RT", '').replace('CT', '').toLowerCase(), msg)
 						mentionPlayers += result[i+1].includes("II") ? " II" : result[i+1].includes("I") ? " I" : ""
 						mentionPlayers += ` ${fromPenText}\n`
 					}
@@ -461,7 +461,7 @@ client.on('message', async msg => {
 					if (collectionNames.length > 1)
 						msg.reply("Note: 2 players were found with the same display name: " + collectionNames.join(" & "))
 					//...
-					mentionPlayers += `${currentPlayer} ` + emoji(ranks[i].replace("Platinum", "plat").replace(/\s/g, '').replace(/[I]/g, '').replace("RT", '').replace('CT', '').toLowerCase().replace("slver", "silver"), msg)
+					mentionPlayers += `<@${currentPlayer.id}> ` + emoji(ranks[i].replace("Platinum", "plat").replace(/\s/g, '').replace(/[I]/g, '').replace("RT", '').replace('CT', '').toLowerCase().replace("slver", "silver"), msg)
 					mentionPlayers += ranks[i].includes("II") ? " II\n" : ranks[i].includes("I") ? " I\n" : "\n"
 					let serverRole = msg.guild.roles.cache.find(role => role.name.toLowerCase() === ranks[i].toLowerCase())
 					const specialRole = modeRoles[modeRoles.indexOf(ranks[i])]
@@ -483,6 +483,13 @@ client.on('message', async msg => {
 	} catch (error) {
 		console.error('ERROR:')
         console.error(error)
+	}
+})
+
+client.on('guildMemberUpdate', (oldMember, newMember) => {
+	const nicknameUpdateChannel = client.channels.cache.find(channel => channel.id === '719330594617819196')
+	if (nicknameUpdateChannel !== undefined && oldMember.displayName != newMember.displayName) {
+		nicknameUpdateChannel.send(`${newMember.user.username} got their name changed from ${oldMember.displayName} to ${newMember.displayName}`)
 	}
 })
 
