@@ -48,27 +48,19 @@ const getRequest = async (mode, warid) => {
 				for (i = 0; i < parsedData.length; i++) {
 					returnArray.push(parsedData[i].name)
 					const currentMMR = parsedData[i].current_mmr
-					if (currentMMR < 2000) {
+					if (currentMMR < 1500) {
+						returnArray.push(mode.toUpperCase() + " Iron")
+					} else if (currentMMR >= 1500 && currentMMR < 3250) {
 						returnArray.push(mode.toUpperCase() + " Bronze")
-					} else if (currentMMR >= 2000 && currentMMR < 2500 && mode === "rt") {
-						returnArray.push(mode.toUpperCase() + " Silver I")
-					} else if (currentMMR >= 2000 && currentMMR < 3000 && mode === "ct") {
-						returnArray.push(mode.toUpperCase() + " Silver I")
-					} else if (currentMMR >= 2500 && currentMMR < 4000 && mode === "rt") {
-						returnArray.push(mode.toUpperCase() + " Silver II")
-					} else if (currentMMR >= 3000 && currentMMR < 4000 && mode === "ct") {
-						returnArray.push(mode.toUpperCase() + " Silver II")
-					} else if (currentMMR >= 4000 && currentMMR < 5000 && mode === "rt") {
-						returnArray.push(mode.toUpperCase() + " Gold I")
-					} else if (currentMMR >= 5000 && currentMMR < 6000 && mode === "rt") {
-						returnArray.push(mode.toUpperCase() + " Gold II")
-					} else if (currentMMR >= 4000 && currentMMR < 6000 && mode === "ct") {
+					} else if (currentMMR >= 3250 && currentMMR < 5000) {
+						returnArray.push(mode.toUpperCase() + " Silver")
+					} else if (currentMMR >= 5000 && currentMMR < 7000) {
 						returnArray.push(mode.toUpperCase() + " Gold")
-					} else if (currentMMR >= 6000 && currentMMR < 8000) {
+					} else if (currentMMR >= 7000 && currentMMR < 9000) {
 						returnArray.push(mode.toUpperCase() + " Platinum")
-					} else if (currentMMR >= 8000 && currentMMR < 10000) {
+					} else if (currentMMR >= 9000 && currentMMR < 11000) {
 						returnArray.push(mode.toUpperCase() + " Diamond")
-					} else if (currentMMR >= 10000) {
+					} else if (currentMMR >= 11000) {
 						returnArray.push(mode.toUpperCase() + " Master")
 					}
 				}
@@ -85,151 +77,146 @@ const getRequest = async (mode, warid) => {
 					let updatedMr = parsedData[i].updated_mmr
 
 					//RTROLES
-					if (currentMr >= 2000 && updatedMr < 2000 && mode === "rt") {
+					if (currentMr >= 1500 && updatedMr < 1500 && mode === "rt") {
+						members.push(parsedData[i].name)
+						roles.push("RT Iron")
+						continue
+					}
+
+					if (currentMr >= 3250 && updatedMr < 3250 && mode === "rt") {
 						members.push(parsedData[i].name)
 						roles.push("RT Bronze")
 						continue
 					}
 
-					if (currentMr < 2000 && updatedMr >= 2000 && mode === "rt") {
+					if (currentMr < 1500 && updatedMr >= 1500 && mode === "rt") {
 						members.push(parsedData[i].name)
-						roles.push("RT Silver I")
-						continue
-					}
-					if (currentMr >= 2500 && updatedMr < 2500 && mode === "rt") {
-						members.push(parsedData[i].name)
-						roles.push("RT Silver I")
-						continue
-					}
-
-					if (currentMr >= 4000 && updatedMr < 4000 && mode === "rt") {
-						members.push(parsedData[i].name)
-						roles.push("RT Silver II")
-						continue
-					}
-
-					if (currentMr < 2500 && updatedMr >= 2500 && mode === "rt") {
-						members.push(parsedData[i].name)
-						roles.push("RT Silver II")
+						roles.push("RT Bronze")
 						continue
 					}
 
 					if (currentMr >= 5000 && updatedMr < 5000 && mode === "rt") {
 						members.push(parsedData[i].name)
-						roles.push("RT Gold I")
+						roles.push("RT Silver")
 						continue
 					}
 
-					if (currentMr < 4000 && updatedMr >= 4000 && mode === "rt") {
+					if (currentMr < 3250 && updatedMr >= 3250 && mode === "rt") {
 						members.push(parsedData[i].name)
-						roles.push("RT Gold I")
+						roles.push("RT Silver")
 						continue
 					}
 
-					if (currentMr >= 6000 && updatedMr < 6000 && mode === "rt") {
+					if (currentMr >= 7000 && updatedMr < 7000 && mode === "rt") {
 						members.push(parsedData[i].name)
-						roles.push("RT Gold II")
+						roles.push("RT Gold")
 						continue
 					}
 
 					if (currentMr < 5000 && updatedMr >= 5000 && mode === "rt") {
 						members.push(parsedData[i].name)
-						roles.push("RT Gold II")
+						roles.push("RT Gold")
 						continue
 					}
 
-					if (currentMr >= 8000 && updatedMr < 8000 && mode === "rt") {
+					if (currentMr >= 9000 && updatedMr < 9000 && mode === "rt") {
 						members.push(parsedData[i].name)
 						roles.push("RT Platinum")
 						continue
 					}
 
-					if (currentMr < 6000 && updatedMr >= 6000 && mode === "rt") {
+					if (currentMr < 7000 && updatedMr >= 7000 && mode === "rt") {
 						members.push(parsedData[i].name)
 						roles.push("RT Platinum")
 						continue
 					}
 
-					if (currentMr >= 10000 && updatedMr < 10000 && mode === "rt") {
+					if (currentMr >= 11000 && updatedMr < 11000 && mode === "rt") {
 						members.push(parsedData[i].name)
 						roles.push("RT Diamond")
 						continue
 					}
 
-					if (currentMr < 8000 && updatedMr >= 8000 && mode === "rt") {
+					if (currentMr < 9000 && updatedMr >= 9000 && mode === "rt") {
 						members.push(parsedData[i].name)
 						roles.push("RT Diamond")
 						continue
 					}
 
-					if (currentMr < 10000 && updatedMr >= 10000 && mode === "rt") {
+					if (currentMr < 11000 && updatedMr >= 11000 && mode === "rt") {
 						members.push(parsedData[i].name)
 						roles.push("RT Master")
 						continue
 					}
 
 					//CTROLES
-					if (currentMr >= 2000 && updatedMr < 2000 && mode === "ct") {
+					if (currentMr >= 1500 && updatedMr < 1500 && mode === "ct") {
+						members.push(parsedData[i].name)
+						roles.push("CT Iron")
+						continue
+					}
+
+					if (currentMr >= 3250 && updatedMr < 3250 && mode === "ct") {
 						members.push(parsedData[i].name)
 						roles.push("CT Bronze")
 						continue
 					}
-					if (currentMr < 2000 && updatedMr >= 2000 && mode === "ct") {
+
+					if (currentMr < 1500 && updatedMr >= 1500 && mode === "ct") {
 						members.push(parsedData[i].name)
-						roles.push("CT Silver I")
-						continue
-					}
-					if (currentMr >= 3000 && updatedMr < 3000 && mode === "ct") {
-						members.push(parsedData[i].name)
-						roles.push("CT Silver I")
+						roles.push("CT Bronze")
 						continue
 					}
 
-					if (currentMr >= 4000 && updatedMr < 4000 && mode === "ct") {
+					if (currentMr >= 5000 && updatedMr < 5000 && mode === "ct") {
 						members.push(parsedData[i].name)
-						roles.push("CT Silver II")
-						continue
-					}
-					if (currentMr < 3000 && updatedMr >= 3000 && mode === "ct") {
-						members.push(parsedData[i].name)
-						roles.push("CT Silver II")
+						roles.push("CT Silver")
 						continue
 					}
 
-					if (currentMr >= 6000 && updatedMr < 6000 && mode === "ct") {
+					if (currentMr < 3250 && updatedMr >= 3250 && mode === "ct") {
 						members.push(parsedData[i].name)
-						roles.push("CT Gold")
+						roles.push("CT Silver")
 						continue
 					}
-					if (currentMr < 4000 && updatedMr >= 4000 && mode === "ct") {
+
+					if (currentMr >= 7000 && updatedMr < 7000 && mode === "ct") {
 						members.push(parsedData[i].name)
 						roles.push("CT Gold")
 						continue
 					}
 
-					if (currentMr >= 8000 && updatedMr < 8000 && mode === "ct") {
+					if (currentMr < 5000 && updatedMr >= 5000 && mode === "ct") {
 						members.push(parsedData[i].name)
-						roles.push("CT Platinum")
+						roles.push("CT Gold")
 						continue
 					}
-					if (currentMr < 6000 && updatedMr >= 6000 && mode === "ct") {
+
+					if (currentMr >= 9000 && updatedMr < 9000 && mode === "ct") {
 						members.push(parsedData[i].name)
 						roles.push("CT Platinum")
 						continue
 					}
 
-					if (currentMr >= 10000 && updatedMr < 10000 && mode === "ct") {
+					if (currentMr < 7000 && updatedMr >= 7000 && mode === "ct") {
 						members.push(parsedData[i].name)
-						roles.push("CT Diamond")
+						roles.push("CT Platinum")
 						continue
 					}
-					if (currentMr < 8000 && updatedMr >= 8000 && mode === "ct") {
+
+					if (currentMr >= 11000 && updatedMr < 11000 && mode === "ct") {
 						members.push(parsedData[i].name)
 						roles.push("CT Diamond")
 						continue
 					}
 
-					if (currentMr < 10000 && updatedMr >= 10000 && mode === "ct") {
+					if (currentMr < 9000 && updatedMr >= 9000 && mode === "ct") {
+						members.push(parsedData[i].name)
+						roles.push("CT Diamond")
+						continue
+					}
+
+					if (currentMr < 11000 && updatedMr >= 11000 && mode === "ct") {
 						members.push(parsedData[i].name)
 						roles.push("CT Master")
 						continue
@@ -266,6 +253,7 @@ const tran_str = (inp) => {
 }
 
 const emoji = (inp, msg_o) => {
+	if (inp === 'ron') inp = 'iron'
 	let theEmoji = msg_o.guild.emojis.cache.find(emoji => emoji.name === inp)
 	return ("<:" + inp + ":" + theEmoji.id.toString() + ">")
 }
@@ -335,8 +323,8 @@ client.on('message', async msg => {
 			partCommandParam = await determineLatestEvent(globalMode)
 		if (!partCommandParam) return send_dm(msg, "Error. Unable to retrieve latest war id")
 
-		const rtRoles = ["RT Bronze", "RT Silver I", "RT Silver II", "RT Gold I", "RT Gold II", "RT Platinum", "RT Diamond", "RT Master"]
-		const ctRoles = ["CT Bronze", "CT Silver I", "CT Silver II", "CT Gold", "CT Platinum", "CT Diamond", "CT Master"]
+		const rtRoles = ["RT Iron", "RT Bronze", "RT Silver", "RT Gold", "RT Platinum", "RT Diamond", "RT Master"]
+		const ctRoles = ["CT Iron", "CT Bronze", "CT Silver", "CT Gold", "CT Platinum", "CT Diamond", "CT Master"]
 		const specialRoles = ["Boss", "Custom Track Arbitrator", "Lower Tier Arbitrator", "Higher Tier Arbitrator", "LT RT Reporter", "LT CT Reporter"]
 		const modeRoles = (globalMode === "rt") ? rtRoles : ctRoles
 		
@@ -411,7 +399,7 @@ client.on('message', async msg => {
 						let fromPenText = (commandParams[i+2] === "np") ? "" : "(from pen)"
 						currentPlayer.roles.add(serverRole.id)
 						mentionPlayers += `<@${currentPlayer.id}> ` + emoji(result[i+1].replace("Platinum", "plat").replace(/\s/g, '').replace(/[I]/g, '').replace("RT", '').replace('CT', '').toLowerCase(), msg)
-						mentionPlayers += result[i+1].includes("II") ? " II" : result[i+1].includes("I") ? " I" : ""
+						mentionPlayers += result[i+1].includes("II") ? " II" : result[i+1].includes("I") && !result[i+1].includes("Iron") ? " I" : ""
 						mentionPlayers += ` ${fromPenText}\n`
 					}
 					if (hasDupRoles)
@@ -462,7 +450,7 @@ client.on('message', async msg => {
 						msg.reply("Note: 2 players were found with the same display name: " + collectionNames.join(" & "))
 					//...
 					mentionPlayers += `<@${currentPlayer.id}> ` + emoji(ranks[i].replace("Platinum", "plat").replace(/\s/g, '').replace(/[I]/g, '').replace("RT", '').replace('CT', '').toLowerCase().replace("slver", "silver"), msg)
-					mentionPlayers += ranks[i].includes("II") ? " II\n" : ranks[i].includes("I") ? " I\n" : "\n"
+					mentionPlayers += ranks[i].includes("II") ? " II\n" : ranks[i].includes("I") && !ranks[i].includes("Iron") ? " I\n" : "\n"
 					let serverRole = msg.guild.roles.cache.find(role => role.name.toLowerCase() === ranks[i].toLowerCase())
 					const specialRole = modeRoles[modeRoles.indexOf(ranks[i])]
 					for (j = 0; j < modeRoles.length; j++) {
@@ -486,10 +474,12 @@ client.on('message', async msg => {
 	}
 })
 
-client.on('guildMemberUpdate', (oldMember, newMember) => {
-	const nicknameUpdateChannel = client.channels.cache.find(channel => channel.id === '719330594617819196')
-	if (nicknameUpdateChannel !== undefined && oldMember.displayName != newMember.displayName) {
-		nicknameUpdateChannel.send(`${newMember.user.username} got their name changed from ${oldMember.displayName} to ${newMember.displayName}`)
+client.on('userUpdate', (oldMember, newMember) => {
+	let oldDisplayName = client.guild.members.cache.find(member => member.id === oldMember.id)
+	let newDisplayName = client.guild.members.cache.find(member => member.id === newMember.id)
+	let nicknameUpdateChannel = client.channels.cache.find(channel => channel.id === '719330594617819196')
+	if (nicknameUpdateChannel !== undefined && oldDisplayName.displayName != newDisplayName.displayName) {
+		nicknameUpdateChannel.send(`${newMember.user.username} changed their display name/nickname from ${oldMember.displayName} to ${newMember.displayName}`)
 	}
 })
 
