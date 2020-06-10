@@ -475,10 +475,10 @@ client.on('message', async msg => {
 })
 
 client.on('userUpdate', (oldMember, newMember) => {
-	let oldDisplayName = client.guild.members.cache.find(member => member.id === oldMember.id)
-	let newDisplayName = client.guild.members.cache.find(member => member.id === newMember.id)
+	const loungeGuild = client.guilds.cache.find(guild => guild.name === 'Lounge')
+	let newDisplayName = loungeGuild.members.cache.find(member => member.id === newMember.id)
 	let nicknameUpdateChannel = client.channels.cache.find(channel => channel.id === '719330594617819196')
-	if (nicknameUpdateChannel !== undefined && oldDisplayName.displayName != newDisplayName.displayName) {
+	if (nicknameUpdateChannel !== undefined && oldMember.username != newMember.username && newMemberName.nickname === undefined) {
 		nicknameUpdateChannel.send(`${newMember.user.username} changed their display name/nickname from ${oldMember.displayName} to ${newMember.displayName}`)
 	}
 })
