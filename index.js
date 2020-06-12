@@ -52,9 +52,13 @@ const getRequest = async (mode, warid) => {
 						returnArray.push(mode.toUpperCase() + " Iron")
 					} else if (currentMMR >= 1500 && currentMMR < 3250) {
 						returnArray.push(mode.toUpperCase() + " Bronze")
-					} else if (currentMMR >= 3250 && currentMMR < 5000) {
+					} else if (currentMMR >= 3250 && currentMMR < 5000 && mode === "rt") {
 						returnArray.push(mode.toUpperCase() + " Silver")
-					} else if (currentMMR >= 5000 && currentMMR < 6000 && mode === "rt") {
+					} else if (currentMMR >= 3250 && currentMMR < 4000 && mode === "ct") {
+						returnArray.push(mode.toUpperCase() + " Silver I")
+					}else if (currentMMR >= 4000 && currentMMR < 5000 && mode === "ct") {
+						returnArray.push(mode.toUpperCase() + " Silver II")
+					}else if (currentMMR >= 5000 && currentMMR < 6000 && mode === "rt") {
 						returnArray.push(mode.toUpperCase() + " Gold I")
 					} else if (currentMMR >= 6000 && currentMMR < 7000 && mode === "rt") {
 						returnArray.push(mode.toUpperCase() + " Gold II")
@@ -186,13 +190,25 @@ const getRequest = async (mode, warid) => {
 
 					if (currentMr >= 5000 && updatedMr < 5000 && mode === "ct") {
 						members.push(parsedData[i].name)
-						roles.push("CT Silver")
+						roles.push("CT Silver II")
+						continue
+					}
+
+					if (currentMr < 4000 && updatedMr >= 4000 && mode === "ct") {
+						members.push(parsedData[i].name)
+						roles.push("CT Silver II")
+						continue
+					}
+
+					if (currentMr >= 4000 && updatedMr < 4000 && mode === "ct") {
+						members.push(parsedData[i].name)
+						roles.push("CT Silver I")
 						continue
 					}
 
 					if (currentMr < 3250 && updatedMr >= 3250 && mode === "ct") {
 						members.push(parsedData[i].name)
-						roles.push("CT Silver")
+						roles.push("CT Silver I")
 						continue
 					}
 
@@ -340,7 +356,7 @@ client.on('message', async msg => {
 		if (!partCommandParam) return send_dm(msg, "Error. Unable to retrieve latest war id")
 
 		const rtRoles = ["RT Iron", "RT Bronze", "RT Silver", "RT Gold I", "RT Gold II", "RT Platinum", "RT Diamond", "RT Master"]
-		const ctRoles = ["CT Iron", "CT Bronze", "CT Silver", "CT Gold", "CT Platinum", "CT Diamond", "CT Master"]
+		const ctRoles = ["CT Iron", "CT Bronze", "CT Silver I", "CT Silver II", "CT Gold", "CT Platinum", "CT Diamond", "CT Master"]
 		const specialRoles = ["Boss", "Custom Track Arbitrator", "Lower Tier Arbitrator", "Higher Tier Arbitrator", "LT RT Reporter", "LT CT Reporter"]
 		const modeRoles = (globalMode === "rt") ? rtRoles : ctRoles
 		
