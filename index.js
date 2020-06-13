@@ -285,7 +285,7 @@ const tran_str = (inp) => {
 }
 
 const emoji = (inp, msg_o) => {
-	if (inp === 'ron') inp = 'iron'
+	if (inp === 'ron') inp = 'Iron'
 	let theEmoji = msg_o.guild.emojis.cache.find(emoji => emoji.name === inp)
 	return ("<:" + inp + ":" + theEmoji.id.toString() + ">")
 }
@@ -442,7 +442,7 @@ client.on('message', async msg => {
 						}
 						let fromPenText = (commandParams[i+2] === "np") ? "" : "(from pen)"
 						currentPlayer.roles.add(serverRole.id)
-						mentionPlayers += `<@${currentPlayer.id}> ` + emoji(result[i+1].replace("Platinum", "plat").replace(/\s/g, '').replace(/[I]/g, '').replace("RT", '').replace('CT', '').toLowerCase(), msg)
+						mentionPlayers += `<@${currentPlayer.id}> ` + emoji(result[i+1].replace(/\s/g, '').replace(/[I]/g, '').replace("RT", '').replace('CT', ''), msg)
 						mentionPlayers += result[i+1].includes("II") ? " II" : result[i+1].includes("I") && !result[i+1].includes("Iron") ? " I" : ""
 						mentionPlayers += ` ${fromPenText}\n`
 					}
@@ -493,7 +493,7 @@ client.on('message', async msg => {
 					if (collectionNames.length > 1)
 						msg.reply("Note: 2 players were found with the same display name: " + collectionNames.join(" & "))
 					//...
-					mentionPlayers += `<@${currentPlayer.id}> ` + emoji(ranks[i].replace("Platinum", "plat").replace(/\s/g, '').replace(/[I]/g, '').replace("RT", '').replace('CT', '').toLowerCase().replace("slver", "silver"), msg)
+					mentionPlayers += `<@${currentPlayer.id}> ` + emoji(ranks[i].replace(/\s/g, '').replace(/[I]/g, '').replace("RT", '').replace('CT', ''), msg)
 					mentionPlayers += ranks[i].includes("II") ? " II\n" : ranks[i].includes("I") && !ranks[i].includes("Iron") ? " I\n" : "\n"
 					let serverRole = msg.guild.roles.cache.find(role => role.name.toLowerCase() === ranks[i].toLowerCase())
 					const specialRole = modeRoles[modeRoles.indexOf(ranks[i])]
