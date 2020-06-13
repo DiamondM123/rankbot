@@ -331,14 +331,28 @@ const removeDuplicates = (array) => {
 
 client.on('message', async msg => {
 	try {
+		const rtRoles = ["RT Iron", "RT Bronze", "RT Silver", "RT Gold I", "RT Gold II", "RT Platinum", "RT Diamond", "RT Master"]
+		const ctRoles = ["CT Iron", "CT Bronze", "CT Silver I", "CT Silver II", "CT Gold", "CT Platinum", "CT Diamond", "CT Master"]
+		const combinedForDP = ["RT Iron", "RT Bronze", "RT Silver", "RT Gold I", "RT Gold II", "RT Platinum", "RT Diamond", "RT Master", "CT Iron", "CT Bronze", "CT Silver I", "CT Silver II", "CT Gold", "CT Platinum", "CT Diamond", "CT Master"]
 		msg.content = msg.content.toLowerCase()
 		if (!msg.content.startsWith("!rt") && !msg.content.startsWith("!ct") && !msg.content.startsWith("!dp")) return
 		if (!msg.member.hasPermission("MANAGE_ROLES")) return// msg.reply("You do not have permissions to use this")
 		if (msg.content.startsWith("!dp")) {
 			let memberList = []
 			msg.guild.members.cache.each(member => memberList.push(member.displayName))
-			for (i = 0; i < memberList.length; i++)
+			for (i = 0; i < memberList.length; i++) {
+				let serverMember = msg.guild.members.cache.find(member => member.displayName === memberList[i])
+				let hasValidRole = false
+				for (j = 0; j < combinedForDP.length; j++) {
+					if (serverMember.roles.cache.some(role => role.name === combinedForDP[j]))
+						hasValidRole = true
+				}
 				memberList[i] = tran_str(memberList[i])
+				if (!hasValidRole) {
+					memberList.splice(i, 1)
+					i--
+				}
+			}
 			let duplicateValues = findDuplicatePlayers(memberList)
 			let listStr = duplicateValues.length !== 0 ? duplicateValues.join(", ") : "None"
 			return msg.channel.send("Players with similar display names in this server: " + listStr)
@@ -355,8 +369,6 @@ client.on('message', async msg => {
 			partCommandParam = await determineLatestEvent(globalMode)
 		if (!partCommandParam) return send_dm(msg, "Error. Unable to retrieve latest war id")
 
-		const rtRoles = ["RT Iron", "RT Bronze", "RT Silver", "RT Gold I", "RT Gold II", "RT Platinum", "RT Diamond", "RT Master"]
-		const ctRoles = ["CT Iron", "CT Bronze", "CT Silver I", "CT Silver II", "CT Gold", "CT Platinum", "CT Diamond", "CT Master"]
 		const specialRoles = ["Boss", "Custom Track Arbitrator", "Lower Tier Arbitrator", "Higher Tier Arbitrator", "LT RT Reporter", "LT CT Reporter"]
 		const modeRoles = (globalMode === "rt") ? rtRoles : ctRoles
 		
