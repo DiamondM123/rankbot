@@ -1,10 +1,10 @@
-const Discord = require('discord.js')
-const {config} = require('dotenv')
+const Discord = require('discord.js');
+const {config} = require('dotenv');
 
-const request = require("request")
-const latinise = require('./latinise') //ty cheron and company
+const request = require("request");
+const latinise = require('./latinise'); //ty cheron and company
 
-const client = new Discord.Client({disableEveryone: true})
+const client = new Discord.Client({disableEveryone: true});
 
 config({
 	path: __dirname + "/.env"
@@ -15,243 +15,283 @@ const downloadPage = (url) => {
         request(url, (error, response, body) => {
             if (error) reject(error);
             if (response.statusCode != 200) {
-                reject('Invalid status code <' + response.statusCode + '>')
-                console.log("LOL LOSER")
+                reject('Invalid status code <' + response.statusCode + '>');
+                console.log("LOL LOSER");
             }
-            resolve(body)
+            resolve(body);
         })
     })
 }
 
 const determineLatestEvent = async (mode) => {
 	try {
-		let html = await downloadPage('https://mariokartboards.com/lounge/json/event.php?type=' + mode + '&all')
-		let parsedData = JSON.parse(html)
+		let html = await downloadPage('https://mariokartboards.com/lounge/json/event.php?type=' + mode + '&all');
+		let parsedData = JSON.parse(html);
 		if (parsedData.length > 0)
-			return parsedData[0].warid.toString()
+			return parsedData[0].warid.toString();
 		else
-			return false
+			return false;
 	} catch (error) {
-		console.error('ERROR:')
-        console.error(error)
+		console.error('ERROR:');
+        console.error(error);
 	}
 }
 
 const getRequest = async (mode, warid) => {
-	var roles = [], members = []
+	var roles = [], members = [];
 	try {
 		if (isNaN(warid)) {
-			let html = await downloadPage('https://mariokartboards.com/lounge/json/player.php?type=' + mode + '&name=' + warid)
-			let parsedData = JSON.parse(html)
-			let returnArray = []
+			let html = await downloadPage('https://mariokartboards.com/lounge/json/player.php?type=' + mode + '&name=' + warid);
+			let parsedData = JSON.parse(html);
+			let returnArray = [];
 			if (parsedData.length > 0) {
 				for (i = 0; i < parsedData.length; i++) {
-					returnArray.push(parsedData[i].name)
-					const currentMMR = parsedData[i].current_mmr
+					returnArray.push(parsedData[i].name);
+					let currentMMR = parsedData[i].current_mmr;
+					let qualifyForMKLegend = Number(parsedData[i].ranking) <= 5 && parsedData[i].total_wars >= 50 ? true : false;
 					if (currentMMR < 1500) {
-						returnArray.push(mode.toUpperCase() + " Iron")
-					} else if (currentMMR >= 1500 && currentMMR < 3250) {
-						returnArray.push(mode.toUpperCase() + " Bronze")
-					} else if (currentMMR >= 3250 && currentMMR < 5000 && mode === "rt") {
-						returnArray.push(mode.toUpperCase() + " Silver")
-					} else if (currentMMR >= 3250 && currentMMR < 4000 && mode === "ct") {
-						returnArray.push(mode.toUpperCase() + " Silver I")
-					}else if (currentMMR >= 4000 && currentMMR < 5000 && mode === "ct") {
-						returnArray.push(mode.toUpperCase() + " Silver II")
-					}else if (currentMMR >= 5000 && currentMMR < 6000 && mode === "rt") {
-						returnArray.push(mode.toUpperCase() + " Gold I")
-					} else if (currentMMR >= 6000 && currentMMR < 7000 && mode === "rt") {
-						returnArray.push(mode.toUpperCase() + " Gold II")
-					} else if (currentMMR >= 5000 && currentMMR < 7000 && mode === "ct") {
-						returnArray.push(mode.toUpperCase() + " Gold")
-					} else if (currentMMR >= 7000 && currentMMR < 9000) {
-						returnArray.push(mode.toUpperCase() + " Platinum")
-					} else if (currentMMR >= 9000 && currentMMR < 11000) {
-						returnArray.push(mode.toUpperCase() + " Diamond")
-					} else if (currentMMR >= 11000) {
-						returnArray.push(mode.toUpperCase() + " Master")
+						returnArray.push(mode.toUpperCase() + " Iron");
+					} else if (currentMMR >= 1500 && currentMMR < 3000) {
+						returnArray.push(mode.toUpperCase() + " Bronze");
+					} else if (currentMMR >= 3000 && currentMMR < 4500) {
+						returnArray.push(mode.toUpperCase() + " Silver");
+					} else if (currentMMR >= 4500 && currentMMR < 6000) {
+						returnArray.push(mode.toUpperCase() + " Gold");
+					} else if (currentMMR >= 6000 && currentMMR < 7500) {
+						returnArray.push(mode.toUpperCase() + " Platinum");
+					} else if (currentMMR >= 7500 && currentMMR < 9000) {
+						returnArray.push(mode.toUpperCase() + " Sapphire");
+					} else if (currentMMR >= 9000 && currentMMR < 10500) {
+						returnArray.push(mode.toUpperCase() + " Diamond");
+					} else if (currentMMR >= 10500 && currentMMR < 11500) {
+						returnArray.push(mode.toUpperCase() + " Master");
+					} else if (currentMMR >= 11500) {
+						if (qualifyForMKLegend) {
+							returnArray.push(mode.toUpperCase() + " MK Legend");
+						} else {
+							returnArray.push(mode.toUpperCase() + " Grandmaster");
+						}
 					}
 				}
 			} else
-				return false
-			return returnArray
+				return false;
+			return returnArray;
 		} else {
-			let html = await downloadPage('https://mariokartboards.com/lounge/json/event.php?type=' + mode + '&id=' + warid)
-			let parsedData = JSON.parse(html)
+			let html = await downloadPage('https://mariokartboards.com/lounge/json/event.php?type=' + mode + '&id=' + warid);
+			let parsedData = JSON.parse(html);
 			if (parsedData.length > 1) {
 				for (i = 0; i < parsedData.length; i++) {
-					let promotion = parsedData[i].promotion
-					let currentMr = parsedData[i].current_mmr
-					let updatedMr = parsedData[i].updated_mmr
+					let promotion = parsedData[i].promotion;
+					let currentMr = parsedData[i].current_mmr;
+					let updatedMr = parsedData[i].updated_mmr;
+					let qualifyMKLegend = Number(parsedData[i].ranking) <= 5 && parsedData[i].total_wars >= 50 ? true : false;
 
 					//RTROLES
 					if (currentMr >= 1500 && updatedMr < 1500 && mode === "rt") {
-						members.push(parsedData[i].name)
-						roles.push("RT Iron")
-						continue
+						members.push(parsedData[i].name);
+						roles.push("RT Iron");
+						continue;
 					}
 
-					if (currentMr >= 3250 && updatedMr < 3250 && mode === "rt") {
-						members.push(parsedData[i].name)
-						roles.push("RT Bronze")
-						continue
+					if (currentMr >= 3000 && updatedMr < 3000 && mode === "rt") {
+						members.push(parsedData[i].name);
+						roles.push("RT Bronze");
+						continue;
 					}
 
 					if (currentMr < 1500 && updatedMr >= 1500 && mode === "rt") {
-						members.push(parsedData[i].name)
-						roles.push("RT Bronze")
-						continue
+						members.push(parsedData[i].name);
+						roles.push("RT Bronze");
+						continue;
 					}
 
-					if (currentMr >= 5000 && updatedMr < 5000 && mode === "rt") {
-						members.push(parsedData[i].name)
-						roles.push("RT Silver")
-						continue
+					if (currentMr >= 4500 && updatedMr < 4500 && mode === "rt") {
+						members.push(parsedData[i].name);
+						roles.push("RT Silver");
+						continue;
 					}
 
-					if (currentMr < 3250 && updatedMr >= 3250 && mode === "rt") {
-						members.push(parsedData[i].name)
-						roles.push("RT Silver")
-						continue
-					}
-
-					if (currentMr >= 7000 && updatedMr < 7000 && mode === "rt") {
-						members.push(parsedData[i].name)
-						roles.push("RT Gold II")
-						continue
-					}
-
-					if (currentMr < 6000 && updatedMr >= 6000 && mode === "rt") {
-						members.push(parsedData[i].name)
-						roles.push("RT Gold II")
-						continue
-					}
-
-					if (currentMr < 5000 && updatedMr >= 5000 && mode === "rt") {
-						members.push(parsedData[i].name)
-						roles.push("RT Gold I")
-						continue
+					if (currentMr < 3000 && updatedMr >= 3000 && mode === "rt") {
+						members.push(parsedData[i].name);
+						roles.push("RT Silver");
+						continue;
 					}
 
 					if (currentMr >= 6000 && updatedMr < 6000 && mode === "rt") {
-						members.push(parsedData[i].name)
-						roles.push("RT Gold I")
-						continue
+						members.push(parsedData[i].name);
+						roles.push("RT Gold");
+						continue;
+					}
+
+					if (currentMr < 4500 && updatedMr >= 4500 && mode === "rt") {
+						members.push(parsedData[i].name);
+						roles.push("RT Gold");
+						continue;
+					}
+
+					if (currentMr >= 7500 && updatedMr < 7500 && mode === "rt") {
+						members.push(parsedData[i].name);
+						roles.push("RT Platinum");
+						continue;
+					}
+
+					if (currentMr < 6000 && updatedMr >= 6000 && mode === "rt") {
+						members.push(parsedData[i].name);
+						roles.push("RT Platinum");
+						continue;
 					}
 
 					if (currentMr >= 9000 && updatedMr < 9000 && mode === "rt") {
-						members.push(parsedData[i].name)
-						roles.push("RT Platinum")
-						continue
+						members.push(parsedData[i].name);
+						roles.push("RT Sapphire");
+						continue;
 					}
 
-					if (currentMr < 7000 && updatedMr >= 7000 && mode === "rt") {
-						members.push(parsedData[i].name)
-						roles.push("RT Platinum")
-						continue
+					if (currentMr < 7500 && updatedMr >= 7500 && mode === "rt") {
+						members.push(parsedData[i].name);
+						roles.push("RT Sapphire");
+						continue;
 					}
 
-					if (currentMr >= 11000 && updatedMr < 11000 && mode === "rt") {
-						members.push(parsedData[i].name)
-						roles.push("RT Diamond")
-						continue
+					if (currentMr >= 10500 && updatedMr < 10500 && mode === "rt") {
+						members.push(parsedData[i].name);
+						roles.push("RT Diamond");
+						continue;
 					}
 
 					if (currentMr < 9000 && updatedMr >= 9000 && mode === "rt") {
-						members.push(parsedData[i].name)
-						roles.push("RT Diamond")
-						continue
+						members.push(parsedData[i].name);
+						roles.push("RT Diamond");
+						continue;
 					}
 
-					if (currentMr < 11000 && updatedMr >= 11000 && mode === "rt") {
-						members.push(parsedData[i].name)
-						roles.push("RT Master")
-						continue
+					if (currentMr >= 11500 && updatedMr < 11500 && mode === "rt") {
+						members.push(parsedData[i].name);
+						roles.push("RT Master");
+						continue;
 					}
+
+					if (currentMr < 10500 && updatedMr >= 10500 && mode === "rt") {
+						members.push(parsedData[i].name);
+						roles.push("RT Master");
+						continue;
+					}
+
+					if (currentMr < 11500 && updatedMr >= 11500 && mode === "rt") {
+						members.push(parsedData[i].name);
+						if (qualifyMKLegend) roles.push("RT MK Legend");
+						else roles.push("RT Grandmaster");
+						continue;
+					}
+
+
+
+
+
+
+
+
+
+
+
+
 
 					//CTROLES
 					if (currentMr >= 1500 && updatedMr < 1500 && mode === "ct") {
-						members.push(parsedData[i].name)
-						roles.push("CT Iron")
-						continue
+						members.push(parsedData[i].name);
+						roles.push("CT Iron");
+						continue;
 					}
 
-					if (currentMr >= 3250 && updatedMr < 3250 && mode === "ct") {
-						members.push(parsedData[i].name)
-						roles.push("CT Bronze")
-						continue
+					if (currentMr >= 3000 && updatedMr < 3000 && mode === "ct") {
+						members.push(parsedData[i].name);
+						roles.push("CT Bronze");
+						continue;
 					}
 
 					if (currentMr < 1500 && updatedMr >= 1500 && mode === "ct") {
-						members.push(parsedData[i].name)
-						roles.push("CT Bronze")
-						continue
+						members.push(parsedData[i].name);
+						roles.push("CT Bronze");
+						continue;
 					}
 
-					if (currentMr >= 5000 && updatedMr < 5000 && mode === "ct") {
-						members.push(parsedData[i].name)
-						roles.push("CT Silver II")
-						continue
+					if (currentMr >= 4500 && updatedMr < 4500 && mode === "ct") {
+						members.push(parsedData[i].name);
+						roles.push("CT Silver");
+						continue;
 					}
 
-					if (currentMr < 4000 && updatedMr >= 4000 && mode === "ct") {
-						members.push(parsedData[i].name)
-						roles.push("CT Silver II")
-						continue
+					if (currentMr < 3000 && updatedMr >= 3000 && mode === "ct") {
+						members.push(parsedData[i].name);
+						roles.push("CT Silver");
+						continue;
 					}
 
-					if (currentMr >= 4000 && updatedMr < 4000 && mode === "ct") {
-						members.push(parsedData[i].name)
-						roles.push("CT Silver I")
-						continue
+					if (currentMr >= 6000 && updatedMr < 6000 && mode === "ct") {
+						members.push(parsedData[i].name);
+						roles.push("CT Gold");
+						continue;
 					}
 
-					if (currentMr < 3250 && updatedMr >= 3250 && mode === "ct") {
-						members.push(parsedData[i].name)
-						roles.push("CT Silver I")
-						continue
+					if (currentMr < 4500 && updatedMr >= 4500 && mode === "ct") {
+						members.push(parsedData[i].name);
+						roles.push("CT Gold");
+						continue;
 					}
 
-					if (currentMr >= 7000 && updatedMr < 7000 && mode === "ct") {
-						members.push(parsedData[i].name)
-						roles.push("CT Gold")
-						continue
+					if (currentMr >= 7500 && updatedMr < 7500 && mode === "ct") {
+						members.push(parsedData[i].name);
+						roles.push("CT Platinum");
+						continue;
 					}
 
-					if (currentMr < 5000 && updatedMr >= 5000 && mode === "ct") {
-						members.push(parsedData[i].name)
-						roles.push("CT Gold")
-						continue
+					if (currentMr < 6000 && updatedMr >= 6000 && mode === "ct") {
+						members.push(parsedData[i].name);
+						roles.push("CT Platinum");
+						continue;
 					}
 
 					if (currentMr >= 9000 && updatedMr < 9000 && mode === "ct") {
-						members.push(parsedData[i].name)
-						roles.push("CT Platinum")
-						continue
+						members.push(parsedData[i].name);
+						roles.push("CT Sapphire");
+						continue;
 					}
 
-					if (currentMr < 7000 && updatedMr >= 7000 && mode === "ct") {
-						members.push(parsedData[i].name)
-						roles.push("CT Platinum")
-						continue
+					if (currentMr < 7500 && updatedMr >= 7500 && mode === "ct") {
+						members.push(parsedData[i].name);
+						roles.push("CT Sapphire");
+						continue;
 					}
 
-					if (currentMr >= 11000 && updatedMr < 11000 && mode === "ct") {
-						members.push(parsedData[i].name)
-						roles.push("CT Diamond")
-						continue
+					if (currentMr >= 10500 && updatedMr < 10500 && mode === "ct") {
+						members.push(parsedData[i].name);
+						roles.push("CT Diamond");
+						continue;
 					}
 
 					if (currentMr < 9000 && updatedMr >= 9000 && mode === "ct") {
-						members.push(parsedData[i].name)
-						roles.push("CT Diamond")
-						continue
+						members.push(parsedData[i].name);
+						roles.push("CT Diamond");
+						continue;
 					}
 
-					if (currentMr < 11000 && updatedMr >= 11000 && mode === "ct") {
-						members.push(parsedData[i].name)
-						roles.push("CT Master")
-						continue
+					if (currentMr >= 11500 && updatedMr < 11500 && mode === "ct") {
+						members.push(parsedData[i].name);
+						roles.push("CT Master");
+						continue;
+					}
+
+					if (currentMr < 10500 && updatedMr >= 10500 && mode === "ct") {
+						members.push(parsedData[i].name);
+						roles.push("CT Master");
+						continue;
+					}
+
+					if (currentMr < 11500 && updatedMr >= 11500 && mode === "ct") {
+						members.push(parsedData[i].name);
+						if (qualifyMKLegend) roles.push("CT MK Legend");
+						else roles.push("CT Grandmaster");
+						continue;
 					}
 
 					// OLD METHOD
@@ -264,43 +304,43 @@ const getRequest = async (mode, warid) => {
 					// }
 				}
 			} else
-				return false
-			let combinedroles = roles.join(",")
-			let combinedmembers = members.join(",")
-			return (combinedroles + "," + combinedmembers)
+				return false;
+			let combinedroles = roles.join(",");
+			let combinedmembers = members.join(",");
+			return (combinedroles + "," + combinedmembers);
 		}
 	} catch (error) {
-		console.error('ERROR:')
-        console.error(error)
+		console.error('ERROR:');
+        console.error(error);
 	}
 }
 
 const send_dm = (msg_o, mes) => {
-	return msg_o.author.send(mes).catch((e) => console.log("Unable to send messsages to " + msg_o.author.tag + ", who attempted to use this bot"))
+	return msg_o.author.send(mes).catch((e) => console.log("Unable to send messsages to " + msg_o.author.tag + ", who attempted to use this bot"));
 }
 
 const tran_str = (inp) => {
-	if (inp === undefined) return undefined
-	return inp.replace(/\s/g, '').latinise().toLowerCase()
+	if (inp === undefined) return undefined;
+	return inp.replace(/\s/g, '').latinise().toLowerCase();
 }
 
 const emoji = (inp, msg_o) => {
-	if (inp === 'ron') inp = 'Iron'
-	let theEmoji = msg_o.guild.emojis.cache.find(emoji => emoji.name === inp)
-	return ("<:" + inp + ":" + theEmoji.id.toString() + ">")
+	if (inp === 'ron') inp = 'Iron';
+	let theEmoji = msg_o.guild.emojis.cache.find(emoji => emoji.name === inp);
+	return ("<:" + inp + ":" + theEmoji.id.toString() + ">");
 }
 
 const checkForDuplicateRoles = (rolesArr, player) => {
-	let roleCount = 0
+	let roleCount = 0;
 	rolesArr.forEach((roleVal) => {
 		if (player.roles.cache.some(role => role.name === roleVal)) {
-			roleCount++
+			roleCount++;
 		}
 	})
 	if (roleCount > 1)
-		return true
+		return true;
 	else
-		return false
+		return false;
 }
 
 const findDuplicatePlayers = (arra1) => {
@@ -323,217 +363,218 @@ const removeDuplicates = (array) => {
   let x = {};
   array.forEach(function(i) {
   	if(!x[i]) {
-    	x[i] = true
+    	x[i] = true;
     }
   })
-  return Object.keys(x)
+  return Object.keys(x);
 };
 
 client.on('message', async msg => {
 	try {
-		const rtRoles = ["RT Iron", "RT Bronze", "RT Silver", "RT Gold I", "RT Gold II", "RT Platinum", "RT Diamond", "RT Master"]
-		const ctRoles = ["CT Iron", "CT Bronze", "CT Silver I", "CT Silver II", "CT Gold", "CT Platinum", "CT Diamond", "CT Master"]
-		const combinedForDP = ["RT Iron", "RT Bronze", "RT Silver", "RT Gold I", "RT Gold II", "RT Platinum", "RT Diamond", "RT Master", "CT Iron", "CT Bronze", "CT Silver I", "CT Silver II", "CT Gold", "CT Platinum", "CT Diamond", "CT Master"]
-		msg.content = msg.content.toLowerCase()
-		if (!msg.content.startsWith("!rt") && !msg.content.startsWith("!ct") && !msg.content.startsWith("!dp")) return
-		if (!msg.member.hasPermission("MANAGE_ROLES")) return// msg.reply("You do not have permissions to use this")
+		const rtRoles = ["RT Iron", "RT Bronze", "RT Silver", "RT Gold", "RT Platinum", "RT Sapphire", "RT Diamond", "RT Master", "RT Grandmaster", "RT MK Legend"];
+		const ctRoles = ["CT Iron", "CT Bronze", "CT Silver", "CT Gold", "CT Platinum", "CT Sapphire", "CT Diamond", "CT Master", "CT Grandmaster", "CT MK Legend"];
+		const combinedForDP = ["RT Iron", "RT Bronze", "RT Silver", "RT Gold", "RT Platinum", "RT Sapphire", "RT Diamond", "RT Master", "RT Grandmaster", "RT MK Legend", "CT Iron", "CT Bronze", "CT Silver", "CT Gold", "CT Platinum", "CT Sapphire", "CT Diamond", "CT Master", "CT Grandmaster", "CT MK Legend"];
+		msg.content = msg.content.toLowerCase();
+		if (!msg.content.startsWith("!rt") && !msg.content.startsWith("!ct") && !msg.content.startsWith("!dp")) return;
+		if (!msg.member.hasPermission("MANAGE_ROLES")) return;// msg.reply("You do not have permissions to use this")
 		if (msg.content.startsWith("!dp")) {
-			let memberList = []
-			msg.guild.members.cache.each(member => memberList.push(member.displayName))
+			let memberList = [];
+			msg.guild.members.cache.each(member => memberList.push(member.displayName));
 			for (i = 0; i < memberList.length; i++) {
-				let serverMember = msg.guild.members.cache.find(member => member.displayName === memberList[i])
-				let hasValidRole = false
+				let serverMember = msg.guild.members.cache.find(member => member.displayName === memberList[i]);
+				let hasValidRole = false;
 				for (j = 0; j < combinedForDP.length; j++) {
 					if (serverMember.roles.cache.some(role => role.name === combinedForDP[j]))
-						hasValidRole = true
+						hasValidRole = true;
 				}
-				memberList[i] = tran_str(memberList[i])
+				memberList[i] = tran_str(memberList[i]);
 				if (!hasValidRole) {
-					memberList.splice(i, 1)
-					i--
+					memberList.splice(i, 1);
+					i--;
 				}
 			}
-			let duplicateValues = findDuplicatePlayers(memberList)
-			let listStr = duplicateValues.length !== 0 ? duplicateValues.join(", ") : "None"
-			return msg.channel.send("Players with similar display names in this server: " + listStr)
+			let duplicateValues = findDuplicatePlayers(memberList);
+			let listStr = duplicateValues.length !== 0 ? duplicateValues.join(", ") : "None";
+			return msg.channel.send("Players with similar display names in this server: " + listStr);
 		}
 		//START
-		const commandParams = msg.content.split(/\s+/)
-		msg.delete()
+		const commandParams = msg.content.split(/\s+/);
+		msg.delete();
 
-		const modes = commandParams[0].split("!")
-		const globalMode = modes[1]
+		const modes = commandParams[0].split("!");
+		const globalMode = modes[1];
 
-		var partCommandParam = commandParams[1]
+		var partCommandParam = commandParams[1];
 		if (commandParams[1] === undefined || commandParams[1] === "")
-			partCommandParam = await determineLatestEvent(globalMode)
-		if (!partCommandParam) return send_dm(msg, "Error. Unable to retrieve latest war id")
+			partCommandParam = await determineLatestEvent(globalMode);
+		if (!partCommandParam) return send_dm(msg, "Error. Unable to retrieve latest war id");
 
-		const specialRoles = ["Boss", "Custom Track Arbitrator", "Lower Tier Arbitrator", "Higher Tier Arbitrator", "LT RT Reporter", "LT CT Reporter"]
-		const modeRoles = (globalMode === "rt") ? rtRoles : ctRoles
+		const specialRoles = ["Boss", "Custom Track Arbitrator", "Lower Tier Arbitrator", "Higher Tier Arbitrator", "LT RT Reporter", "LT CT Reporter"];
+		const modeRoles = (globalMode === "rt") ? rtRoles : ctRoles;
 		
 		if (commandParams.length > 2) {
 			for (i = 0; i < commandParams.length; i++) {
 				if (isNaN(commandParams[1])) {
 					if (!isNaN(commandParams[i])) {
-						return msg.reply("There are differing value types in your arguments")
+						return msg.reply("There are differing value types in your arguments");
 					}
 				} else {
 					if (isNaN(commandParams[i])) {
-						return msg.reply("There are differing value types in your arguments")
+						return msg.reply("There are differing value types in your arguments");
 					}
 				}
 			}
 		}
-		let result = await getRequest(globalMode, partCommandParam)
-		if (!result && !isNaN(partCommandParam)) return send_dm(msg, "Error. Unable to find player/event with the name/id " + partCommandParam)
-		var mentionPlayers = ''
-		let resultParamsArray = []
+		let result = await getRequest(globalMode, partCommandParam);
+		if (!result && !isNaN(partCommandParam)) return send_dm(msg, "Error. Unable to find player/event with the name/id " + partCommandParam);
+		var mentionPlayers = '';
+		let resultParamsArray = [];
 
 		if (isNaN(partCommandParam)) {
 			for (i = 0; i < commandParams.length; i++) {
 				if (i !== 0 && commandParams[i] !== "np") {
-					resultParamsArray.push(commandParams[i])
+					resultParamsArray.push(commandParams[i]);
 				}
 			}
-			result = await getRequest(globalMode, resultParamsArray.join(","))
-			if (!result) return send_dm(msg, "Error. Unable to find players with the name(s) " + resultParamsArray.join(","))
+			result = await getRequest(globalMode, resultParamsArray.join(","));
+			if (!result) return send_dm(msg, "Error. Unable to find players with the name(s) " + resultParamsArray.join(","));
 			for (i = 0; i < commandParams.length; i++) {
-				let checking = true
+				let checking = true;
 				for (j = 0; j < result.length; j++) {
 					if (tran_str(commandParams[i]) === tran_str(result[j]))
-						checking = false
+						checking = false;
 				}
 				if (checking && i !== 0 && commandParams[i] !== "np")
-					send_dm(msg, "Unable to find server member with the name " + commandParams[i])
+					send_dm(msg, "Unable to find server member with the name " + commandParams[i]);
 			}
 			for (i = 0; i < result.length; i++) {
 				if (i % 2 === 0) {
 					//extra logic for additional players
-					let currentPlayer = msg.guild.members.cache.find(member => tran_str(member.displayName) === tran_str(result[i]))
-					let currentPlayerCollection, collectionNames = []
+					let currentPlayer = msg.guild.members.cache.find(member => tran_str(member.displayName) === tran_str(result[i]));
+					let currentPlayerCollection, collectionNames = [];
 					if (currentPlayer === undefined) {
-						send_dm(msg, "Unable to find server member with the name " + result[i])
-						continue
+						send_dm(msg, "Unable to find server member with the name " + result[i]);
+						continue;
 					}
 					for (j = 0; j < modeRoles.length; j++) {
-						currentPlayer = msg.guild.members.cache.find(member => tran_str(member.displayName) === tran_str(result[i]) && member.roles.cache.some(role => role.name === modeRoles[j]) && !member.roles.cache.some(role => role.name === "Unverified"))
+						currentPlayer = msg.guild.members.cache.find(member => tran_str(member.displayName) === tran_str(result[i]) && member.roles.cache.some(role => role.name === modeRoles[j]) && !member.roles.cache.some(role => role.name === "Unverified"));
 						if (currentPlayer !== undefined)
-							break
+							break;
 					}
 					for (j = 0; j < modeRoles.length; j++) {
-						currentPlayerCollection = msg.guild.members.cache.filter(member => tran_str(member.displayName) === tran_str(result[i]) && member.roles.cache.some(role => role.name === modeRoles[j]) && !member.roles.cache.some(role => role.name === "Unverified"))
+						currentPlayerCollection = msg.guild.members.cache.filter(member => tran_str(member.displayName) === tran_str(result[i]) && member.roles.cache.some(role => role.name === modeRoles[j]) && !member.roles.cache.some(role => role.name === "Unverified"));
 						if (currentPlayerCollection !== undefined)
-							currentPlayerCollection.each(member => collectionNames.push(member.user.tag))
+							currentPlayerCollection.each(member => collectionNames.push(member.user.tag));
 					}
 					if (currentPlayer === undefined) {
-						send_dm(msg, result[i] + " does not have a rank role yet.")
-						continue
+						send_dm(msg, result[i] + " does not have a rank role yet.");
+						continue;
 					}
-					let hasDupRoles = checkForDuplicateRoles(modeRoles, currentPlayer)
-					collectionNames = removeDuplicates(collectionNames)
+					let hasDupRoles = checkForDuplicateRoles(modeRoles, currentPlayer);
+					collectionNames = removeDuplicates(collectionNames);
 					if (collectionNames.length > 1)
-						msg.reply("Multiple players were found with the same display name: " + collectionNames.join(" & "))
-					let serverRole = msg.guild.roles.cache.find(role => role.name === result[i+1])
+						msg.reply("Multiple players were found with the same display name: " + collectionNames.join(" & "));
+					let serverRole = msg.guild.roles.cache.find(role => role.name == result[i+1]);
 					if (!currentPlayer.roles.cache.some(role => role.name.toLowerCase() === serverRole.name.toLowerCase())) {
 						for (j = 0; j < modeRoles.length; j++) {
-							if (currentPlayer.roles.cache.some(role => role.name === modeRoles[j]))
-								currentPlayer.roles.remove(currentPlayer.roles.cache.find(role => role.name.toLowerCase() === modeRoles[j].toLowerCase()))
+							if (currentPlayer.roles.cache.some(role => role.name == modeRoles[j]))
+								currentPlayer.roles.remove(currentPlayer.roles.cache.find(role => role.name.toLowerCase() === modeRoles[j].toLowerCase()));
 						}
-						let fromPenText = (commandParams[i+2] === "np") ? "" : "(from pen)"
-						currentPlayer.roles.add(serverRole.id)
-						mentionPlayers += `<@${currentPlayer.id}> ` + emoji(result[i+1].replace(/\s/g, '').replace(/[I]/g, '').replace("RT", '').replace('CT', ''), msg)
-						mentionPlayers += result[i+1].includes("II") ? " II" : result[i+1].includes("I") && !result[i+1].includes("Iron") ? " I" : ""
-						mentionPlayers += ` ${fromPenText}\n`
+						let fromPenText = (commandParams[i+2] === "np") ? "" : "(from pen)";
+						currentPlayer.roles.add(serverRole.id);
+						mentionPlayers += `<@${currentPlayer.id}> ` + emoji(result[i+1].replace(/[I]/g, '').replace("RT ", '').replace('CT ', ''), msg);
+						//mentionPlayers += `<@${currentPlayer.id}> ` + emoji(result[i+1].replace(/\s/g, '').replace(/[I]/g, '').replace("RT", '').replace('CT', ''), msg);
+						mentionPlayers += result[i+1].includes("II") ? " II" : result[i+1].includes("I") && !result[i+1].includes("Iron") ? " I" : "";
+						mentionPlayers += ` ${fromPenText}\n`;
 					}
 					if (hasDupRoles)
-						msg.reply(`${currentPlayer.displayName} has multiple ${globalMode.toUpperCase()} roles but should be ${serverRole.name}. Double check if they promoted/demoted to a temprole`)
+						msg.reply(`${currentPlayer.displayName} has multiple ${globalMode.toUpperCase()} roles but should be ${serverRole.name}. Double check if they promoted/demoted to a temprole`);
 				}
 			}
 		} else {
-			if (commandParams.length > 2) return msg.reply("Error. Cannot do multiple events at a time")
+			if (commandParams.length > 2) return msg.reply("Error. Cannot do multiple events at a time");
 			if (result !== ',') {
-				let resultarray = result.split(",")
-				const ranks = resultarray.slice(0, resultarray.length/2)
-				const players = resultarray.slice(resultarray.length/2, resultarray.length)
+				let resultarray = result.split(",");
+				const ranks = resultarray.slice(0, resultarray.length/2);
+				const players = resultarray.slice(resultarray.length/2, resultarray.length);
 				for (i = 0; i < players.length; i++) {
-					let hasSpecialRole = false
-					let currentPlayer = msg.guild.members.cache.find(member => tran_str(member.displayName) === tran_str(players[i]))
-					let currentPlayerCollection, collectionNames = []
+					let hasSpecialRole = false;
+					let currentPlayer = msg.guild.members.cache.find(member => tran_str(member.displayName) === tran_str(players[i]));
+					let currentPlayerCollection, collectionNames = [];
 					if (currentPlayer === undefined) {
-						send_dm(msg, "Unable to find server member with the name " + players[i])
-						continue
+						send_dm(msg, "Unable to find server member with the name " + players[i]);
+						continue;
 					}
 					//...
 					for (j = 0; j < modeRoles.length; j++) {
-						currentPlayer = msg.guild.members.cache.find(member => tran_str(member.displayName) === tran_str(players[i]) && member.roles.cache.some(role => role.name === modeRoles[j]) && !member.roles.cache.some(role => role.name === "Unverified"))
+						currentPlayer = msg.guild.members.cache.find(member => tran_str(member.displayName) === tran_str(players[i]) && member.roles.cache.some(role => role.name === modeRoles[j]) && !member.roles.cache.some(role => role.name === "Unverified"));
 						if (currentPlayer !== undefined)
-							break
+							break;
 					}
 					for (j = 0; j < modeRoles.length; j++) {
-						currentPlayerCollection = msg.guild.members.cache.filter(member => tran_str(member.displayName) === tran_str(players[i]) && member.roles.cache.some(role => role.name === modeRoles[j]) && !member.roles.cache.some(role => role.name === "Unverified"))
+						currentPlayerCollection = msg.guild.members.cache.filter(member => tran_str(member.displayName) === tran_str(players[i]) && member.roles.cache.some(role => role.name == modeRoles[j]) && !member.roles.cache.some(role => role.name === "Unverified"));
 						if (currentPlayerCollection !== undefined)
-							currentPlayerCollection.each(member => collectionNames.push(member.user.tag))
+							currentPlayerCollection.each(member => collectionNames.push(member.user.tag));
 					}
 					if (currentPlayer === undefined) {
 						for (j = 0; j < specialRoles.length; j++) {
-							currentPlayer = msg.guild.members.cache.find(member => tran_str(member.displayName) === tran_str(players[i]) && member.roles.cache.some(role => role.name === specialRoles[j]) && !member.roles.cache.some(role => role.name === "Unverified"))
+							currentPlayer = msg.guild.members.cache.find(member => tran_str(member.displayName) === tran_str(players[i]) && member.roles.cache.some(role => role.name == specialRoles[j]) && !member.roles.cache.some(role => role.name === "Unverified"));
 							if (currentPlayer !== undefined) {
-								hasSpecialRole = true
-								break
+								hasSpecialRole = true;
+								break;
 							}
 						}
 					}
 					if (currentPlayer === undefined) {
-						send_dm(msg, players[i] + " does not have a rank role yet.")
-						continue
+						send_dm(msg, players[i] + " does not have a rank role yet.");
+						continue;
 					}
-					let hasDupRoles = checkForDuplicateRoles(modeRoles, currentPlayer)
-					collectionNames = removeDuplicates(collectionNames)
+					let hasDupRoles = checkForDuplicateRoles(modeRoles, currentPlayer);
+					collectionNames = removeDuplicates(collectionNames);
 					if (collectionNames.length > 1)
-						msg.reply("Note: 2 players were found with the same display name: " + collectionNames.join(" & "))
+						msg.reply("Note: 2 players were found with the same display name: " + collectionNames.join(" & "));
 					//...
-					mentionPlayers += `<@${currentPlayer.id}> ` + emoji(ranks[i].replace(/\s/g, '').replace(/[I]/g, '').replace("RT", '').replace('CT', ''), msg)
-					mentionPlayers += ranks[i].includes("II") ? " II\n" : ranks[i].includes("I") && !ranks[i].includes("Iron") ? " I\n" : "\n"
-					let serverRole = msg.guild.roles.cache.find(role => role.name.toLowerCase() === ranks[i].toLowerCase())
-					const specialRole = modeRoles[modeRoles.indexOf(ranks[i])]
+					mentionPlayers += `<@${currentPlayer.id}> ` + emoji(ranks[i].replace(/[I]/g, '').replace("RT ", '').replace('CT ', ''), msg);
+					//mentionPlayers += `<@${currentPlayer.id}> ` + emoji(ranks[i].replace(/\s/g, '').replace(/[I]/g, '').replace("RT", '').replace('CT', ''), msg);
+					mentionPlayers += ranks[i].includes("II") ? " II\n" : ranks[i].includes("I") && !ranks[i].includes("Iron") ? " I\n" : "\n";
+					let serverRole = msg.guild.roles.cache.find(role => role.name.toLowerCase() === ranks[i].toLowerCase());
+					const specialRole = modeRoles[modeRoles.indexOf(ranks[i])];
 					for (j = 0; j < modeRoles.length; j++) {
 						if (modeRoles[j] !== specialRole) {
 							if (currentPlayer.roles.cache.some(role => role.name === modeRoles[j]) && !hasDupRoles)
-								currentPlayer.roles.remove(currentPlayer.roles.cache.find(role => role.name.toLowerCase() === modeRoles[j].toLowerCase()))
+								currentPlayer.roles.remove(currentPlayer.roles.cache.find(role => role.name.toLowerCase() === modeRoles[j].toLowerCase()));
 						}
 					}
 					if (!hasSpecialRole)
-						currentPlayer.roles.add(serverRole.id)
+						currentPlayer.roles.add(serverRole.id);
 					if (hasDupRoles)
-						msg.reply(`${currentPlayer.displayName} has multiple ${globalMode.toUpperCase()} roles. Please check if they promoted/demoted to a temprole`)
+						msg.reply(`${currentPlayer.displayName} has multiple ${globalMode.toUpperCase()} roles. Please check if they promoted/demoted to a temprole`);
 				}
 			}
 		}
 		if (mentionPlayers !== '')
-			msg.channel.send(mentionPlayers)
+			msg.channel.send(mentionPlayers);
 	} catch (error) {
-		console.error('ERROR:')
-        console.error(error)
+		console.error('ERROR:');
+        console.error(error);
 	}
 })
 
 client.on('userUpdate', (oldMember, newMember) => {
-	const loungeGuild = client.guilds.cache.find(guild => guild.name === 'Lounge')
-	if (loungeGuild === undefined) return console.log("Undefined guild")
-	let newDisplayName = loungeGuild.members.cache.find(member => member.id === newMember.id)
-	let nicknameUpdateChannel = client.channels.cache.find(channel => channel.id === '719330594617819196')
+	const loungeGuild = client.guilds.cache.find(guild => guild.name === 'Lounge');
+	if (loungeGuild === undefined) return console.log("Undefined guild");
+	let newDisplayName = loungeGuild.members.cache.find(member => member.id === newMember.id);
+	let nicknameUpdateChannel = client.channels.cache.find(channel => channel.id === '719330594617819196');
 	if (nicknameUpdateChannel !== undefined && oldMember.username != newMember.username && newDisplayName.nickname === null) {
-		nicknameUpdateChannel.send(`${newMember.username} changed their username from ${oldMember.username} to ${newMember.username}`)
+		nicknameUpdateChannel.send(`${newMember.username} changed their username from ${oldMember.username} to ${newMember.username}`);
 	}
 })
 
 client.on('ready', () => {
 	//client.user.setUsername("<--- me irl").then(user => console.log(`My new username is ${user.username}`)).catch(console.error())
-	console.log(`Logged in as ${client.user.tag}`)
+	console.log(`Logged in as ${client.user.tag}`);
 
-	client.user.setActivity("Pro Jones hack the mainframe", {type: "WATCHING"}).then(presence => console.log(`Activity set to ${presence.activities[0].name}`))
-  .catch(console.error);
+	client.user.setActivity("Pro Jones hack the mainframe", {type: "WATCHING"}).then(presence => console.log(`Activity set to ${presence.activities[0].name}`)).catch(console.error);
 })
 
-client.login(process.env.TOKEN)
+client.login(process.env.TOKEN);
