@@ -14,6 +14,7 @@ const downloadPage = (url) => {
     return new Promise((resolve, reject) => {
         request(url, (error, response, body) => {
             if (error) reject(error);
+            if (!response) return "do over";
             if (response.statusCode != 200) {
                 reject('Invalid status code <' + response.statusCode + '>');
                 console.log("LOL LOSER");
@@ -37,7 +38,7 @@ const determineLatestEvent = async (mode) => {
 	}
 }
 
-const getRequest = async (mode, warid) => {
+const getRequest = async (mode, warid, msg_obj) => {
 	var roles = [], members = [];
 	try {
 		if (isNaN(warid)) {
@@ -79,6 +80,23 @@ const getRequest = async (mode, warid) => {
 					let promotion = parsedData[i].promotion;
 					let currentMr = parsedData[i].current_mmr;
 					let updatedMr = parsedData[i].updated_mmr;
+					let top50JSON = await downloadPage('https://mariokartboards.com/lounge/json/player.php?type=' + mode + '&name=' + parsedData[i].name);
+					top50JSON = JSON.parse(top50JSON);
+					// console.log(top50JSON[0].ranking);
+					let currentPlayer = msg_obj.guild.members.cache.find(member => tran_str(member.displayName) === tran_str(parsedData[i].name));
+
+					if (Number(top50JSON[0].ranking) <= 50 && currentPlayer != undefined) {
+						//console.log("good");
+						if (!currentPlayer.roles.cache.some(role => role.id == (mode == "rt" ? '800958350446690304' : '800958359569694741'))) {
+							//800958912705724426
+							//800986394230652928
+							msg_obj.channel.send(`<@${currentPlayer.id}> <:top~1:800958912705724426>`);
+						}
+						currentPlayer.roles.add(mode == "rt" ? '800958350446690304' : '800958359569694741');
+					} else {
+						//console.log("not good");
+						currentPlayer.roles.remove(mode == "rt" ? '800958350446690304' : '800958359569694741');
+					}
 
 					//RTROLES
 					if (currentMr >= 1000 && updatedMr < 1000 && mode === "rt") {
@@ -196,7 +214,7 @@ const getRequest = async (mode, warid) => {
 						continue;
 					}
 
-					if (currentMr >= 2500 && updatedMr < 2500 && mode === "ct") {
+					if (currentMr >= 2250 && updatedMr < 2250 && mode === "ct") {
 						members.push(parsedData[i].name);
 						roles.push("CT Bronze");
 						continue;
@@ -208,79 +226,79 @@ const getRequest = async (mode, warid) => {
 						continue;
 					}
 
-					if (currentMr >= 4000 && updatedMr < 4000 && mode === "ct") {
+					if (currentMr >= 3500 && updatedMr < 3500 && mode === "ct") {
 						members.push(parsedData[i].name);
 						roles.push("CT Silver");
 						continue;
 					}
 
-					if (currentMr < 2500 && updatedMr >= 2500 && mode === "ct") {
+					if (currentMr < 2250 && updatedMr >= 2250 && mode === "ct") {
 						members.push(parsedData[i].name);
 						roles.push("CT Silver");
+						continue;
+					}
+
+					if (currentMr >= 4500 && updatedMr < 4500 && mode === "ct") {
+						members.push(parsedData[i].name);
+						roles.push("CT Gold");
+						continue;
+					}
+
+					if (currentMr < 3500 && updatedMr >= 3500 && mode === "ct") {
+						members.push(parsedData[i].name);
+						roles.push("CT Gold");
 						continue;
 					}
 
 					if (currentMr >= 5500 && updatedMr < 5500 && mode === "ct") {
 						members.push(parsedData[i].name);
-						roles.push("CT Gold");
+						roles.push("CT Platinum");
 						continue;
 					}
 
-					if (currentMr < 4000 && updatedMr >= 4000 && mode === "ct") {
+					if (currentMr < 4500 && updatedMr >= 4500 && mode === "ct") {
 						members.push(parsedData[i].name);
-						roles.push("CT Gold");
+						roles.push("CT Platinum");
 						continue;
 					}
 
 					if (currentMr >= 7000 && updatedMr < 7000 && mode === "ct") {
 						members.push(parsedData[i].name);
-						roles.push("CT Platinum");
+						roles.push("CT Emerald");
 						continue;
 					}
 
 					if (currentMr < 5500 && updatedMr >= 5500 && mode === "ct") {
 						members.push(parsedData[i].name);
-						roles.push("CT Platinum");
+						roles.push("CT Emerald");
 						continue;
 					}
 
 					if (currentMr >= 8500 && updatedMr < 8500 && mode === "ct") {
 						members.push(parsedData[i].name);
-						roles.push("CT Emerald");
+						roles.push("CT Diamond");
 						continue;
 					}
 
 					if (currentMr < 7000 && updatedMr >= 7000 && mode === "ct") {
 						members.push(parsedData[i].name);
-						roles.push("CT Emerald");
+						roles.push("CT Diamond");
 						continue;
 					}
 
 					if (currentMr >= 10000 && updatedMr < 10000 && mode === "ct") {
 						members.push(parsedData[i].name);
-						roles.push("CT Diamond");
+						roles.push("CT Master");
 						continue;
 					}
 
 					if (currentMr < 8500 && updatedMr >= 8500 && mode === "ct") {
-						members.push(parsedData[i].name);
-						roles.push("CT Diamond");
-						continue;
-					}
-
-					if (currentMr >= 11000 && updatedMr < 11000 && mode === "ct") {
 						members.push(parsedData[i].name);
 						roles.push("CT Master");
 						continue;
 					}
 
 					if (currentMr < 10000 && updatedMr >= 10000 && mode === "ct") {
-						members.push(parsedData[i].name);
-						roles.push("CT Master");
-						continue;
-					}
-
-					if (currentMr < 11000 && updatedMr >= 11000 && mode === "ct") {
 						members.push(parsedData[i].name);
 						roles.push("CT Grandmaster");
 						continue;
@@ -361,31 +379,13 @@ const removeDuplicates = (array) => {
   return Object.keys(x);
 };
 
-const doTop50Stuff = async (mode, msg_obj) => {
-	let allPlayerContent = await downloadPage(`https://mariokartboards.com/lounge/json/player.php?type=${mode}&all`);
-	allPlayerContent = JSON.parse(allPlayerContent);
-	let top50Role = msg_obj.guild.roles.cache.find(role => role.name == "Top 50 " + mode.toUpperCase());
-	for (i = 0; i < allPlayerContent.length; i++) {
-		let curPlayer = await downloadPage(`https://mariokartboards.com/lounge/json/player.php?type=${mode}&name=${allPlayerContent[i].name}`);
-		curPlayer = JSON.parse(curPlayer);
-		if (!curPlayer) continue;
-		let top50member = msg_obj.guild.members.cache.find(member => tran_str(allPlayerContent[i].name) == tran_str(member.displayName));
-		if (!top50member) continue;
-		console.log(top50member);
-		if (Number(curPlayer[0].ranking) <= 50)
-			top50member.roles.add(top50Role.id);
-		else
-			top50member.roles.remove(top50Role.id);
-	}
-}
-
 client.on('message', async msg => {
 	try {
-		const rtRoles = ["RT Iron", "RT Bronze", "RT Silver", "RT Gold", "RT Platinum", "RT Emerald", "RT Diamond", "RT Master", "RT Grandmaster", "RT MK Legend"];
-		const ctRoles = ["CT Iron", "CT Bronze", "CT Silver", "CT Gold", "CT Platinum", "CT Emerald", "CT Diamond", "CT Master", "CT Grandmaster", "CT MK Legend"];
-		const combinedForDP = ["RT Iron", "RT Bronze", "RT Silver", "RT Gold", "RT Platinum", "RT Emerald", "RT Diamond", "RT Master", "RT Grandmaster", "RT MK Legend", "CT Iron", "CT Bronze", "CT Silver", "CT Gold", "CT Platinum", "CT Emerald", "CT Diamond", "CT Master", "CT Grandmaster", "CT MK Legend"];
+		const rtRoles = ["RT Iron", "RT Bronze", "RT Silver", "RT Gold", "RT Platinum", "RT Emerald", "RT Diamond", "RT Master", "RT Grandmaster"];
+		const ctRoles = ["CT Iron", "CT Bronze", "CT Silver", "CT Gold", "CT Platinum", "CT Emerald", "CT Diamond", "CT Master", "CT Grandmaster"];
+		const combinedForDP = ["RT Iron", "RT Bronze", "RT Silver", "RT Gold", "RT Platinum", "RT Emerald", "RT Diamond", "RT Master", "RT Grandmaster", "CT Iron", "CT Bronze", "CT Silver", "CT Gold", "CT Platinum", "CT Emerald", "CT Diamond", "CT Master", "CT Grandmaster"];
 		msg.content = msg.content.toLowerCase();
-		if (!msg.content.startsWith("!rt") && !msg.content.startsWith("!ct") && !msg.content.startsWith("!dp") && !msg.content.startsWith("!top50")) return;
+		if (!msg.content.startsWith("!rt") && !msg.content.startsWith("!ct") && !msg.content.startsWith("!dp")) return;
 		if (!msg.member.hasPermission("MANAGE_ROLES")) return;// msg.reply("You do not have permissions to use this")
 		if (msg.content.startsWith("!dp")) {
 			let memberList = [];
@@ -406,11 +406,6 @@ client.on('message', async msg => {
 			let duplicateValues = findDuplicatePlayers(memberList);
 			let listStr = duplicateValues.length !== 0 ? duplicateValues.join(", ") : "None";
 			return msg.channel.send("Players with similar display names in this server: " + listStr);
-		}
-		if (msg.content.startsWith("!top50")) {
-			doTop50Stuff("rt", msg);
-			doTop50Stuff("ct", msg);
-			return;
 		}
 		//START
 		const commandParams = msg.content.split(/\s+/);
@@ -440,7 +435,7 @@ client.on('message', async msg => {
 				}
 			}
 		}
-		let result = await getRequest(globalMode, partCommandParam);
+		let result = await getRequest(globalMode, partCommandParam, msg);
 		if (!result && !isNaN(partCommandParam)) return send_dm(msg, "Error. Unable to find player/event with the name/id " + partCommandParam);
 		var mentionPlayers = '';
 		let resultParamsArray = [];
@@ -451,7 +446,7 @@ client.on('message', async msg => {
 					resultParamsArray.push(commandParams[i]);
 				}
 			}
-			result = await getRequest(globalMode, resultParamsArray.join(","));
+			result = await getRequest(globalMode, resultParamsArray.join(","), msg);
 			if (!result) return send_dm(msg, "Error. Unable to find players with the name(s) " + resultParamsArray.join(","));
 			for (i = 0; i < commandParams.length; i++) {
 				let checking = true;
