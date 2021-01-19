@@ -49,23 +49,23 @@ const getRequest = async (mode, warid) => {
 					returnArray.push(parsedData[i].name);
 					let currentMMR = parsedData[i].current_mmr;
 					let qualifyForMKLegend = Number(parsedData[i].ranking) <= 5 && parsedData[i].total_wars >= 50 ? true : false;
-					if (currentMMR < 1500) {
+					if (currentMMR < 1000) {
 						returnArray.push(mode.toUpperCase() + " Iron");
-					} else if (currentMMR >= 1500 && currentMMR < 3000) {
+					} else if (currentMMR >= 1000 && currentMMR < 2500) {
 						returnArray.push(mode.toUpperCase() + " Bronze");
-					} else if (currentMMR >= 3000 && currentMMR < 4500) {
+					} else if (currentMMR >= 2500 && currentMMR < 4000) {
 						returnArray.push(mode.toUpperCase() + " Silver");
-					} else if (currentMMR >= 4500 && currentMMR < 6000) {
+					} else if (currentMMR >= 4000 && currentMMR < 5500) {
 						returnArray.push(mode.toUpperCase() + " Gold");
-					} else if (currentMMR >= 6000 && currentMMR < 7500) {
+					} else if (currentMMR >= 5500 && currentMMR < 7000) {
 						returnArray.push(mode.toUpperCase() + " Platinum");
-					} else if (currentMMR >= 7500 && currentMMR < 9000) {
+					} else if (currentMMR >= 7000 && currentMMR < 8500) {
 						returnArray.push(mode.toUpperCase() + " Sapphire");
-					} else if (currentMMR >= 9000 && currentMMR < 10500) {
+					} else if (currentMMR >= 8500 && currentMMR < 10000) {
 						returnArray.push(mode.toUpperCase() + " Diamond");
-					} else if (currentMMR >= 10500 && currentMMR < 11500) {
+					} else if (currentMMR >= 10000 && currentMMR < 11000) {
 						returnArray.push(mode.toUpperCase() + " Master");
-					} else if (currentMMR >= 11500) {
+					} else if (currentMMR >= 11000) {
 						if (qualifyForMKLegend) {
 							returnArray.push(mode.toUpperCase() + " MK Legend");
 						} else {
@@ -87,97 +87,97 @@ const getRequest = async (mode, warid) => {
 					let qualifyMKLegend = Number(parsedData[i].ranking) <= 5 && parsedData[i].total_wars >= 50 ? true : false;
 
 					//RTROLES
-					if (currentMr >= 1500 && updatedMr < 1500 && mode === "rt") {
+					if (currentMr >= 1000 && updatedMr < 1000 && mode === "rt") {
 						members.push(parsedData[i].name);
 						roles.push("RT Iron");
 						continue;
 					}
 
-					if (currentMr >= 3000 && updatedMr < 3000 && mode === "rt") {
+					if (currentMr >= 2500 && updatedMr < 2500 && mode === "rt") {
 						members.push(parsedData[i].name);
 						roles.push("RT Bronze");
 						continue;
 					}
 
-					if (currentMr < 1500 && updatedMr >= 1500 && mode === "rt") {
+					if (currentMr < 1000 && updatedMr >= 1000 && mode === "rt") {
 						members.push(parsedData[i].name);
 						roles.push("RT Bronze");
 						continue;
 					}
 
-					if (currentMr >= 4500 && updatedMr < 4500 && mode === "rt") {
+					if (currentMr >= 4000 && updatedMr < 4000 && mode === "rt") {
 						members.push(parsedData[i].name);
 						roles.push("RT Silver");
 						continue;
 					}
 
-					if (currentMr < 3000 && updatedMr >= 3000 && mode === "rt") {
+					if (currentMr < 2500 && updatedMr >= 2500 && mode === "rt") {
 						members.push(parsedData[i].name);
 						roles.push("RT Silver");
 						continue;
 					}
 
-					if (currentMr >= 6000 && updatedMr < 6000 && mode === "rt") {
+					if (currentMr >= 5500 && updatedMr < 5500 && mode === "rt") {
 						members.push(parsedData[i].name);
 						roles.push("RT Gold");
 						continue;
 					}
 
-					if (currentMr < 4500 && updatedMr >= 4500 && mode === "rt") {
+					if (currentMr < 4000 && updatedMr >= 4000 && mode === "rt") {
 						members.push(parsedData[i].name);
 						roles.push("RT Gold");
 						continue;
 					}
 
-					if (currentMr >= 7500 && updatedMr < 7500 && mode === "rt") {
+					if (currentMr >= 7000 && updatedMr < 7000 && mode === "rt") {
 						members.push(parsedData[i].name);
 						roles.push("RT Platinum");
 						continue;
 					}
 
-					if (currentMr < 6000 && updatedMr >= 6000 && mode === "rt") {
+					if (currentMr < 5500 && updatedMr >= 5500 && mode === "rt") {
 						members.push(parsedData[i].name);
 						roles.push("RT Platinum");
 						continue;
 					}
 
-					if (currentMr >= 9000 && updatedMr < 9000 && mode === "rt") {
+					if (currentMr >= 8500 && updatedMr < 8500 && mode === "rt") {
 						members.push(parsedData[i].name);
 						roles.push("RT Sapphire");
 						continue;
 					}
 
-					if (currentMr < 7500 && updatedMr >= 7500 && mode === "rt") {
+					if (currentMr < 7000 && updatedMr >= 7000 && mode === "rt") {
 						members.push(parsedData[i].name);
 						roles.push("RT Sapphire");
 						continue;
 					}
 
-					if (currentMr >= 10500 && updatedMr < 10500 && mode === "rt") {
+					if (currentMr >= 10000 && updatedMr < 10000 && mode === "rt") {
 						members.push(parsedData[i].name);
 						roles.push("RT Diamond");
 						continue;
 					}
 
-					if (currentMr < 9000 && updatedMr >= 9000 && mode === "rt") {
+					if (currentMr < 8500 && updatedMr >= 8500 && mode === "rt") {
 						members.push(parsedData[i].name);
 						roles.push("RT Diamond");
 						continue;
 					}
 
-					if (currentMr >= 11500 && updatedMr < 11500 && mode === "rt") {
+					if (currentMr >= 11000 && updatedMr < 11000 && mode === "rt") {
 						members.push(parsedData[i].name);
 						roles.push("RT Master");
 						continue;
 					}
 
-					if (currentMr < 10500 && updatedMr >= 10500 && mode === "rt") {
+					if (currentMr < 10000 && updatedMr >= 10000 && mode === "rt") {
 						members.push(parsedData[i].name);
 						roles.push("RT Master");
 						continue;
 					}
 
-					if (currentMr < 11500 && updatedMr >= 11500 && mode === "rt") {
+					if (currentMr < 11000 && updatedMr >= 11000 && mode === "rt") {
 						members.push(parsedData[i].name);
 						if (qualifyMKLegend) roles.push("RT MK Legend");
 						else roles.push("RT Grandmaster");
@@ -197,97 +197,97 @@ const getRequest = async (mode, warid) => {
 
 
 					//CTROLES
-					if (currentMr >= 1500 && updatedMr < 1500 && mode === "ct") {
+					if (currentMr >= 1000 && updatedMr < 1000 && mode === "ct") {
 						members.push(parsedData[i].name);
 						roles.push("CT Iron");
 						continue;
 					}
 
-					if (currentMr >= 3000 && updatedMr < 3000 && mode === "ct") {
+					if (currentMr >= 2500 && updatedMr < 2500 && mode === "ct") {
 						members.push(parsedData[i].name);
 						roles.push("CT Bronze");
 						continue;
 					}
 
-					if (currentMr < 1500 && updatedMr >= 1500 && mode === "ct") {
+					if (currentMr < 1000 && updatedMr >= 1000 && mode === "ct") {
 						members.push(parsedData[i].name);
 						roles.push("CT Bronze");
 						continue;
 					}
 
-					if (currentMr >= 4500 && updatedMr < 4500 && mode === "ct") {
+					if (currentMr >= 4000 && updatedMr < 4000 && mode === "ct") {
 						members.push(parsedData[i].name);
 						roles.push("CT Silver");
 						continue;
 					}
 
-					if (currentMr < 3000 && updatedMr >= 3000 && mode === "ct") {
+					if (currentMr < 2500 && updatedMr >= 2500 && mode === "ct") {
 						members.push(parsedData[i].name);
 						roles.push("CT Silver");
 						continue;
 					}
 
-					if (currentMr >= 6000 && updatedMr < 6000 && mode === "ct") {
+					if (currentMr >= 5500 && updatedMr < 5500 && mode === "ct") {
 						members.push(parsedData[i].name);
 						roles.push("CT Gold");
 						continue;
 					}
 
-					if (currentMr < 4500 && updatedMr >= 4500 && mode === "ct") {
+					if (currentMr < 4000 && updatedMr >= 4000 && mode === "ct") {
 						members.push(parsedData[i].name);
 						roles.push("CT Gold");
 						continue;
 					}
 
-					if (currentMr >= 7500 && updatedMr < 7500 && mode === "ct") {
+					if (currentMr >= 7000 && updatedMr < 7000 && mode === "ct") {
 						members.push(parsedData[i].name);
 						roles.push("CT Platinum");
 						continue;
 					}
 
-					if (currentMr < 6000 && updatedMr >= 6000 && mode === "ct") {
+					if (currentMr < 5500 && updatedMr >= 5500 && mode === "ct") {
 						members.push(parsedData[i].name);
 						roles.push("CT Platinum");
 						continue;
 					}
 
-					if (currentMr >= 9000 && updatedMr < 9000 && mode === "ct") {
+					if (currentMr >= 8500 && updatedMr < 8500 && mode === "ct") {
 						members.push(parsedData[i].name);
 						roles.push("CT Sapphire");
 						continue;
 					}
 
-					if (currentMr < 7500 && updatedMr >= 7500 && mode === "ct") {
+					if (currentMr < 7000 && updatedMr >= 7000 && mode === "ct") {
 						members.push(parsedData[i].name);
 						roles.push("CT Sapphire");
 						continue;
 					}
 
-					if (currentMr >= 10500 && updatedMr < 10500 && mode === "ct") {
+					if (currentMr >= 10000 && updatedMr < 10000 && mode === "ct") {
 						members.push(parsedData[i].name);
 						roles.push("CT Diamond");
 						continue;
 					}
 
-					if (currentMr < 9000 && updatedMr >= 9000 && mode === "ct") {
+					if (currentMr < 8500 && updatedMr >= 8500 && mode === "ct") {
 						members.push(parsedData[i].name);
 						roles.push("CT Diamond");
 						continue;
 					}
 
-					if (currentMr >= 11500 && updatedMr < 11500 && mode === "ct") {
+					if (currentMr >= 11000 && updatedMr < 11000 && mode === "ct") {
 						members.push(parsedData[i].name);
 						roles.push("CT Master");
 						continue;
 					}
 
-					if (currentMr < 10500 && updatedMr >= 10500 && mode === "ct") {
+					if (currentMr < 10000 && updatedMr >= 10000 && mode === "ct") {
 						members.push(parsedData[i].name);
 						roles.push("CT Master");
 						continue;
 					}
 
-					if (currentMr < 11500 && updatedMr >= 11500 && mode === "ct") {
+					if (currentMr < 11000 && updatedMr >= 11000 && mode === "ct") {
 						members.push(parsedData[i].name);
 						if (qualifyMKLegend) roles.push("CT MK Legend");
 						else roles.push("CT Grandmaster");
@@ -488,7 +488,7 @@ client.on('message', async msg => {
 						mentionPlayers += ` ${fromPenText}\n`;
 					}
 					if (hasDupRoles)
-						msg.reply(`${currentPlayer.displayName} has multiple ${globalMode.toUpperCase()} roles but should be ${serverRole.name}. Double check if they promoted/demoted to a temprole`);
+						msg.reply(`${currentPlayer.displayName} has multiple ${globalMode.toUpperCase()} roles but should be ${serverRole.name}. Check if they promoted/demoted to a temprole`);
 				}
 			}
 		} else {
