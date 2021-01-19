@@ -38,6 +38,13 @@ const determineLatestEvent = async (mode) => {
 	}
 }
 
+const emoji = (inp, msg_o) => {
+	if (inp === 'ron') inp = 'Iron';
+	let theEmoji = msg_o.guild.emojis.cache.find(emoji => emoji.name === inp);
+	//console.log("<:" + inp + ":" + theEmoji.id.toString() + ">");
+	return ("<:" + inp + ":" + theEmoji.id.toString() + ">");
+}
+
 const getRequest = async (mode, warid, msg_obj) => {
 	var roles = [], members = [];
 	try {
@@ -90,7 +97,8 @@ const getRequest = async (mode, warid, msg_obj) => {
 						if (!currentPlayer.roles.cache.some(role => role.id == (mode == "rt" ? '800958350446690304' : '800958359569694741'))) {
 							//800958912705724426
 							//800986394230652928
-							msg_obj.channel.send(`<@${currentPlayer.id}> <:top~1:800958912705724426>`);
+							//801111279157641246
+							msg_obj.channel.send(`<@${currentPlayer.id}> ` + emoji('top', msg_obj));
 						}
 						currentPlayer.roles.add(mode == "rt" ? '800958350446690304' : '800958359569694741');
 					} else if (currentPlayer != undefined) {
@@ -334,12 +342,6 @@ const tran_str = (inp) => {
 	return inp.replace(/\s/g, '').latinise().toLowerCase();
 }
 
-const emoji = (inp, msg_o) => {
-	if (inp === 'ron') inp = 'Iron';
-	let theEmoji = msg_o.guild.emojis.cache.find(emoji => emoji.name === inp);
-	return ("<:" + inp + ":" + theEmoji.id.toString() + ">");
-}
-
 const checkForDuplicateRoles = (rolesArr, player) => {
 	let roleCount = 0;
 	rolesArr.forEach((roleVal) => {
@@ -381,6 +383,8 @@ const removeDuplicates = (array) => {
 
 client.on('message', async msg => {
 	try {
+		//<:top:801111279157641246>
+		//msg.channel.send(emoji('top', msg));
 		const rtRoles = ["RT Iron", "RT Bronze", "RT Silver", "RT Gold", "RT Platinum", "RT Emerald", "RT Diamond", "RT Master", "RT Grandmaster"];
 		const ctRoles = ["CT Iron", "CT Bronze", "CT Silver", "CT Gold", "CT Platinum", "CT Emerald", "CT Diamond", "CT Master", "CT Grandmaster"];
 		const combinedForDP = ["RT Iron", "RT Bronze", "RT Silver", "RT Gold", "RT Platinum", "RT Emerald", "RT Diamond", "RT Master", "RT Grandmaster", "CT Iron", "CT Bronze", "CT Silver", "CT Gold", "CT Platinum", "CT Emerald", "CT Diamond", "CT Master", "CT Grandmaster"];
