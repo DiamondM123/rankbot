@@ -48,7 +48,6 @@ const getRequest = async (mode, warid) => {
 				for (i = 0; i < parsedData.length; i++) {
 					returnArray.push(parsedData[i].name);
 					let currentMMR = parsedData[i].current_mmr;
-					let qualifyForMKLegend = Number(parsedData[i].ranking) <= 5 && parsedData[i].total_wars >= 50 ? true : false;
 					if (currentMMR < 1000) {
 						returnArray.push(mode.toUpperCase() + " Iron");
 					} else if (currentMMR >= 1000 && currentMMR < 2500) {
@@ -60,17 +59,13 @@ const getRequest = async (mode, warid) => {
 					} else if (currentMMR >= 5500 && currentMMR < 7000) {
 						returnArray.push(mode.toUpperCase() + " Platinum");
 					} else if (currentMMR >= 7000 && currentMMR < 8500) {
-						returnArray.push(mode.toUpperCase() + " Sapphire");
+						returnArray.push(mode.toUpperCase() + " Emerald");
 					} else if (currentMMR >= 8500 && currentMMR < 10000) {
 						returnArray.push(mode.toUpperCase() + " Diamond");
 					} else if (currentMMR >= 10000 && currentMMR < 11000) {
 						returnArray.push(mode.toUpperCase() + " Master");
 					} else if (currentMMR >= 11000) {
-						if (qualifyForMKLegend) {
-							returnArray.push(mode.toUpperCase() + " MK Legend");
-						} else {
-							returnArray.push(mode.toUpperCase() + " Grandmaster");
-						}
+						returnArray.push(mode.toUpperCase() + " Grandmaster");
 					}
 				}
 			} else
@@ -84,7 +79,6 @@ const getRequest = async (mode, warid) => {
 					let promotion = parsedData[i].promotion;
 					let currentMr = parsedData[i].current_mmr;
 					let updatedMr = parsedData[i].updated_mmr;
-					let qualifyMKLegend = Number(parsedData[i].ranking) <= 5 && parsedData[i].total_wars >= 50 ? true : false;
 
 					//RTROLES
 					if (currentMr >= 1000 && updatedMr < 1000 && mode === "rt") {
@@ -143,13 +137,13 @@ const getRequest = async (mode, warid) => {
 
 					if (currentMr >= 8500 && updatedMr < 8500 && mode === "rt") {
 						members.push(parsedData[i].name);
-						roles.push("RT Sapphire");
+						roles.push("RT Emerald");
 						continue;
 					}
 
 					if (currentMr < 7000 && updatedMr >= 7000 && mode === "rt") {
 						members.push(parsedData[i].name);
-						roles.push("RT Sapphire");
+						roles.push("RT Emerald");
 						continue;
 					}
 
@@ -179,8 +173,7 @@ const getRequest = async (mode, warid) => {
 
 					if (currentMr < 11000 && updatedMr >= 11000 && mode === "rt") {
 						members.push(parsedData[i].name);
-						if (qualifyMKLegend) roles.push("RT MK Legend");
-						else roles.push("RT Grandmaster");
+						roles.push("RT Grandmaster");
 						continue;
 					}
 
@@ -253,13 +246,13 @@ const getRequest = async (mode, warid) => {
 
 					if (currentMr >= 8500 && updatedMr < 8500 && mode === "ct") {
 						members.push(parsedData[i].name);
-						roles.push("CT Sapphire");
+						roles.push("CT Emerald");
 						continue;
 					}
 
 					if (currentMr < 7000 && updatedMr >= 7000 && mode === "ct") {
 						members.push(parsedData[i].name);
-						roles.push("CT Sapphire");
+						roles.push("CT Emerald");
 						continue;
 					}
 
@@ -289,8 +282,7 @@ const getRequest = async (mode, warid) => {
 
 					if (currentMr < 11000 && updatedMr >= 11000 && mode === "ct") {
 						members.push(parsedData[i].name);
-						if (qualifyMKLegend) roles.push("CT MK Legend");
-						else roles.push("CT Grandmaster");
+						roles.push("CT Grandmaster");
 						continue;
 					}
 
@@ -369,13 +361,31 @@ const removeDuplicates = (array) => {
   return Object.keys(x);
 };
 
+const doTop50Stuff = async (mode, msg_obj) => {
+	let allPlayerContent = await downloadPage(`https://mariokartboards.com/lounge/json/player.php?type=${mode}&all`);
+	allPlayerContent = JSON.parse(allPlayerContent);
+	let top50Role = msg_obj.guild.roles.cache.find(role => role.name == "Top 50 " + mode.toUpperCase());
+	for (i = 0; i < allPlayerContent.length; i++) {
+		let curPlayer = await downloadPage(`https://mariokartboards.com/lounge/json/player.php?type=${mode}&name=${allPlayerContent[i].name}`);
+		curPlayer = JSON.parse(curPlayer);
+		if (!curPlayer) continue;
+		let top50member = msg_obj.guild.members.cache.find(member => tran_str(allPlayerContent[i].name) == tran_str(member.displayName));
+		if (!top50member) continue;
+		console.log(top50member);
+		if (Number(curPlayer[0].ranking) <= 50)
+			top50member.roles.add(top50Role.id);
+		else
+			top50member.roles.remove(top50Role.id);
+	}
+}
+
 client.on('message', async msg => {
 	try {
-		const rtRoles = ["RT Iron", "RT Bronze", "RT Silver", "RT Gold", "RT Platinum", "RT Sapphire", "RT Diamond", "RT Master", "RT Grandmaster", "RT MK Legend"];
-		const ctRoles = ["CT Iron", "CT Bronze", "CT Silver", "CT Gold", "CT Platinum", "CT Sapphire", "CT Diamond", "CT Master", "CT Grandmaster", "CT MK Legend"];
-		const combinedForDP = ["RT Iron", "RT Bronze", "RT Silver", "RT Gold", "RT Platinum", "RT Sapphire", "RT Diamond", "RT Master", "RT Grandmaster", "RT MK Legend", "CT Iron", "CT Bronze", "CT Silver", "CT Gold", "CT Platinum", "CT Sapphire", "CT Diamond", "CT Master", "CT Grandmaster", "CT MK Legend"];
+		const rtRoles = ["RT Iron", "RT Bronze", "RT Silver", "RT Gold", "RT Platinum", "RT Emerald", "RT Diamond", "RT Master", "RT Grandmaster", "RT MK Legend"];
+		const ctRoles = ["CT Iron", "CT Bronze", "CT Silver", "CT Gold", "CT Platinum", "CT Emerald", "CT Diamond", "CT Master", "CT Grandmaster", "CT MK Legend"];
+		const combinedForDP = ["RT Iron", "RT Bronze", "RT Silver", "RT Gold", "RT Platinum", "RT Emerald", "RT Diamond", "RT Master", "RT Grandmaster", "RT MK Legend", "CT Iron", "CT Bronze", "CT Silver", "CT Gold", "CT Platinum", "CT Emerald", "CT Diamond", "CT Master", "CT Grandmaster", "CT MK Legend"];
 		msg.content = msg.content.toLowerCase();
-		if (!msg.content.startsWith("!rt") && !msg.content.startsWith("!ct") && !msg.content.startsWith("!dp")) return;
+		if (!msg.content.startsWith("!rt") && !msg.content.startsWith("!ct") && !msg.content.startsWith("!dp") && !msg.content.startsWith("!top50")) return;
 		if (!msg.member.hasPermission("MANAGE_ROLES")) return;// msg.reply("You do not have permissions to use this")
 		if (msg.content.startsWith("!dp")) {
 			let memberList = [];
@@ -396,6 +406,11 @@ client.on('message', async msg => {
 			let duplicateValues = findDuplicatePlayers(memberList);
 			let listStr = duplicateValues.length !== 0 ? duplicateValues.join(", ") : "None";
 			return msg.channel.send("Players with similar display names in this server: " + listStr);
+		}
+		if (msg.content.startsWith("!top50")) {
+			doTop50Stuff("rt", msg);
+			doTop50Stuff("ct", msg);
+			return;
 		}
 		//START
 		const commandParams = msg.content.split(/\s+/);
