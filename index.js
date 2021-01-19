@@ -45,6 +45,11 @@ const emoji = (inp, msg_o) => {
 	return ("<:" + inp + ":" + theEmoji.id.toString() + ">");
 }
 
+const tran_str = (inp) => {
+	if (inp === undefined) return undefined;
+	return inp.replace(/\s/g, '').latinise().toLowerCase();
+}
+
 const getRequest = async (mode, warid, msg_obj) => {
 	var roles = [], members = [];
 	try {
@@ -55,24 +60,49 @@ const getRequest = async (mode, warid, msg_obj) => {
 			if (parsedData.length > 0) {
 				for (i = 0; i < parsedData.length; i++) {
 					returnArray.push(parsedData[i].name);
-					let currentMMR = parsedData[i].current_mmr;
+					let currentMMR = Number(parsedData[i].current_mmr);
+					let currentPlayer = msg_obj.guild.members.cache.find(member => tran_str(member.displayName) === tran_str(parsedData[i].name));
+					if (Number(parsedData[i].ranking) <= 50 && currentPlayer != undefined) {
+						if (!currentPlayer.roles.cache.some(role => role.id == (mode == "rt" ? '800958350446690304' : '800958359569694741'))) {
+							msg_obj.channel.send(`<@${currentPlayer.id}> ` + emoji('top', msg_obj));
+						}
+					} else if (currentPlayer != undefined) {
+						//console.log("not good");
+						currentPlayer.roles.remove(mode == "rt" ? '800958350446690304' : '800958359569694741');
+					}
 					if (currentMMR < 1000) {
 						returnArray.push(mode.toUpperCase() + " Iron");
-					} else if (currentMMR >= 1000 && currentMMR < 2500) {
+					} else if (currentMMR >= 1000 && currentMMR < 2500 && mode == "rt") {
 						returnArray.push(mode.toUpperCase() + " Bronze");
-					} else if (currentMMR >= 2500 && currentMMR < 4000) {
+					} else if (currentMMR >= 2500 && currentMMR < 4000 && mode == "rt") {
 						returnArray.push(mode.toUpperCase() + " Silver");
-					} else if (currentMMR >= 4000 && currentMMR < 5500) {
+					} else if (currentMMR >= 4000 && currentMMR < 5500 && mode == "rt") {
 						returnArray.push(mode.toUpperCase() + " Gold");
-					} else if (currentMMR >= 5500 && currentMMR < 7000) {
+					} else if (currentMMR >= 5500 && currentMMR < 7000 && mode == "rt") {
 						returnArray.push(mode.toUpperCase() + " Platinum");
-					} else if (currentMMR >= 7000 && currentMMR < 8500) {
+					} else if (currentMMR >= 7000 && currentMMR < 8500 && mode == "rt") {
 						returnArray.push(mode.toUpperCase() + " Emerald");
-					} else if (currentMMR >= 8500 && currentMMR < 10000) {
+					} else if (currentMMR >= 8500 && currentMMR < 10000 && mode == "rt") {
 						returnArray.push(mode.toUpperCase() + " Diamond");
-					} else if (currentMMR >= 10000 && currentMMR < 11000) {
+					} else if (currentMMR >= 10000 && currentMMR < 11000 && mode == "rt") {
 						returnArray.push(mode.toUpperCase() + " Master");
-					} else if (currentMMR >= 11000) {
+					} else if (currentMMR >= 11000 && mode == "rt") {
+						returnArray.push(mode.toUpperCase() + " Grandmaster");
+					} else if (currentMMR >= 1000 && currentMMR < 2250 && mode == "ct") {
+						returnArray.push(mode.toUpperCase() + " Bronze");
+					} else if (currentMMR >= 2250 && currentMMR < 3500 && mode == "ct") {
+						returnArray.push(mode.toUpperCase() + " Silver");
+					} else if (currentMMR >= 3500 && currentMMR < 4500 && mode == "ct") {
+						returnArray.push(mode.toUpperCase() + " Gold");
+					} else if (currentMMR >= 4500 && currentMMR < 5500 && mode == "ct") {
+						returnArray.push(mode.toUpperCase() + " Platinum");
+					} else if (currentMMR >= 5500 && currentMMR < 7000 && mode == "ct") {
+						returnArray.push(mode.toUpperCase() + " Emerald");
+					} else if (currentMMR >= 7000 && currentMMR < 8500 && mode == "ct") {
+						returnArray.push(mode.toUpperCase() + " Diamond");
+					} else if (currentMMR >= 8500 && currentMMR < 10000 && mode == "ct") {
+						returnArray.push(mode.toUpperCase() + " Master");
+					} else if (currentMMR >= 10000 && mode == "ct") {
 						returnArray.push(mode.toUpperCase() + " Grandmaster");
 					}
 				}
@@ -335,11 +365,6 @@ const getRequest = async (mode, warid, msg_obj) => {
 
 const send_dm = (msg_o, mes) => {
 	return msg_o.author.send(mes).catch((e) => console.log("Unable to send messsages to " + msg_o.author.tag + ", who attempted to use this bot"));
-}
-
-const tran_str = (inp) => {
-	if (inp === undefined) return undefined;
-	return inp.replace(/\s/g, '').latinise().toLowerCase();
 }
 
 const checkForDuplicateRoles = (rolesArr, player) => {
