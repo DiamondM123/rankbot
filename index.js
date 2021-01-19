@@ -93,7 +93,7 @@ const getRequest = async (mode, warid, msg_obj) => {
 							msg_obj.channel.send(`<@${currentPlayer.id}> <:top~1:800958912705724426>`);
 						}
 						currentPlayer.roles.add(mode == "rt" ? '800958350446690304' : '800958359569694741');
-					} else {
+					} else if (currentPlayer != undefined) {
 						//console.log("not good");
 						currentPlayer.roles.remove(mode == "rt" ? '800958350446690304' : '800958359569694741');
 					}
@@ -386,7 +386,16 @@ client.on('message', async msg => {
 		const combinedForDP = ["RT Iron", "RT Bronze", "RT Silver", "RT Gold", "RT Platinum", "RT Emerald", "RT Diamond", "RT Master", "RT Grandmaster", "CT Iron", "CT Bronze", "CT Silver", "CT Gold", "CT Platinum", "CT Emerald", "CT Diamond", "CT Master", "CT Grandmaster"];
 		msg.content = msg.content.toLowerCase();
 		if (!msg.content.startsWith("!rt") && !msg.content.startsWith("!ct") && !msg.content.startsWith("!dp")) return;
-		if (!msg.member.hasPermission("MANAGE_ROLES")) return;// msg.reply("You do not have permissions to use this")
+		const rolesThatCanUpdate = ['387347888935534593', '792805904047276032', '399382503825211393', '399384750923579392', '521149807994208295', '792891432301625364', '521154917675827221', '393600567781621761', '520808645252874240'];
+		// 504795505583456257
+		let canUpdate = false;
+		for (i = 0; i < rolesThatCanUpdate.length; i++) {
+			if (msg.member.roles.cache.some(role => role.id == rolesThatCanUpdate[i])) canUpdate = true;
+		}
+		if (!canUpdate) {
+			// msg.reply("You do not have permissions to use this")
+			return;
+		}
 		if (msg.content.startsWith("!dp")) {
 			let memberList = [];
 			msg.guild.members.cache.each(member => memberList.push(member.displayName));
