@@ -522,14 +522,14 @@ client.on('message', async msg => {
 					collectionNames = removeDuplicates(collectionNames);
 					if (collectionNames.length > 1)
 						msg.reply("Multiple players were found with the same display name: " + collectionNames.join(" & "));
-					let serverRole = msg.guild.roles.cache.find(role => role.name == result[i+1]);
+					let serverRole = await msg.guild.roles.cache.find(role => role.name == result[i+1]);
 					if (!currentPlayer.roles.cache.some(role => role.name.toLowerCase() === serverRole.name.toLowerCase())) {
 						for (j = 0; j < modeRoles.length; j++) {
 							if (currentPlayer.roles.cache.some(role => role.name == modeRoles[j]))
-								currentPlayer.roles.remove(currentPlayer.roles.cache.find(role => role.name.toLowerCase() === modeRoles[j].toLowerCase()));
+								await currentPlayer.roles.remove(currentPlayer.roles.cache.find(role => role.name.toLowerCase() === modeRoles[j].toLowerCase()));
 						}
 						let fromPenText = (commandParams[i+2] === "np") ? "" : "(from pen)";
-						currentPlayer.roles.add(serverRole.id);
+						await currentPlayer.roles.add(serverRole.id);
 						mentionPlayers += `<@${currentPlayer.id}> ` + emoji(result[i+1].replace(/[I]/g, '').replace("RT ", '').replace('CT ', ''), msg);
 						//mentionPlayers += `<@${currentPlayer.id}> ` + emoji(result[i+1].replace(/\s/g, '').replace(/[I]/g, '').replace("RT", '').replace('CT', ''), msg);
 						mentionPlayers += result[i+1].includes("II") ? " II" : result[i+1].includes("I") && !result[i+1].includes("Iron") ? " I" : "";
@@ -585,16 +585,16 @@ client.on('message', async msg => {
 					mentionPlayers += `<@${currentPlayer.id}> ` + emoji(ranks[i].replace(/[I]/g, '').replace("RT ", '').replace('CT ', ''), msg);
 					//mentionPlayers += `<@${currentPlayer.id}> ` + emoji(ranks[i].replace(/\s/g, '').replace(/[I]/g, '').replace("RT", '').replace('CT', ''), msg);
 					mentionPlayers += ranks[i].includes("II") ? " II\n" : ranks[i].includes("I") && !ranks[i].includes("Iron") ? " I\n" : "\n";
-					let serverRole = msg.guild.roles.cache.find(role => role.name.toLowerCase() === ranks[i].toLowerCase());
+					let serverRole = await msg.guild.roles.cache.find(role => role.name.toLowerCase() === ranks[i].toLowerCase());
 					const specialRole = modeRoles[modeRoles.indexOf(ranks[i])];
 					for (j = 0; j < modeRoles.length; j++) {
 						if (modeRoles[j] !== specialRole) {
 							if (currentPlayer.roles.cache.some(role => role.name === modeRoles[j]) && !hasDupRoles)
-								currentPlayer.roles.remove(currentPlayer.roles.cache.find(role => role.name.toLowerCase() === modeRoles[j].toLowerCase()));
+								await currentPlayer.roles.remove(currentPlayer.roles.cache.find(role => role.name.toLowerCase() === modeRoles[j].toLowerCase()));
 						}
 					}
 					if (!hasSpecialRole)
-						currentPlayer.roles.add(serverRole.id);
+						await currentPlayer.roles.add(serverRole.id);
 					if (hasDupRoles)
 						msg.reply(`${currentPlayer.displayName} has multiple ${globalMode.toUpperCase()} roles. Please check if they promoted/demoted to a temprole`);
 				}
