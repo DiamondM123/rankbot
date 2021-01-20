@@ -65,10 +65,11 @@ const getRequest = async (mode, warid, msg_obj) => {
 					if (Number(parsedData[i].ranking) <= 50 && currentPlayer != undefined) {
 						if (!currentPlayer.roles.cache.some(role => role.id == (mode == "rt" ? '800958350446690304' : '800958359569694741'))) {
 							msg_obj.channel.send(`<@${currentPlayer.id}> ` + emoji('top', msg_obj));
+							currentPlayer.roles.add(mode == "rt" ? '800958350446690304' : '800958359569694741');
 						}
 					} else if (currentPlayer != undefined) {
 						//console.log("not good");
-						currentPlayer.roles.remove(mode == "rt" ? '800958350446690304' : '800958359569694741');
+						await currentPlayer.roles.remove(mode == "rt" ? '800958350446690304' : '800958359569694741');
 					}
 					if (currentMMR < 1000) {
 						returnArray.push(mode.toUpperCase() + " Iron");
@@ -130,10 +131,10 @@ const getRequest = async (mode, warid, msg_obj) => {
 							//801111279157641246
 							msg_obj.channel.send(`<@${currentPlayer.id}> ` + emoji('top', msg_obj));
 						}
-						currentPlayer.roles.add(mode == "rt" ? '800958350446690304' : '800958359569694741');
+						await currentPlayer.roles.add(mode == "rt" ? '800958350446690304' : '800958359569694741');
 					} else if (currentPlayer != undefined) {
 						//console.log("not good");
-						currentPlayer.roles.remove(mode == "rt" ? '800958350446690304' : '800958359569694741');
+						await currentPlayer.roles.remove(mode == "rt" ? '800958350446690304' : '800958359569694741');
 					}
 
 					//RTROLES
