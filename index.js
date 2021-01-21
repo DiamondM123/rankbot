@@ -383,7 +383,7 @@ const removeDuplicates = (array) => {
 
 const doTop50Stuff = async (msg_obj, mode) => {
 	try {
-		let pageContent = await downloadPage(`https://mariokartboards.com/lounge/json/player.php?type=${mode}&limit=50`);
+		let pageContent = await downloadPage(`https://mariokartboards.com/lounge/json/player.php?type=${mode}&limit=50&compress`);
 		pageContent = JSON.parse(pageContent);
 		let playerswithTop50 = [];
 		let playerswithTop50Col = msg_obj.guild.members.cache.find(member => member.roles.cache.some(role => role.id == (mode == 'rt' ? '800958350446690304' : '800958359569694741')));
@@ -424,10 +424,10 @@ client.on('message', async msg => {
 		for (i = 0; i < rolesThatCanUpdate.length; i++) {
 			if (msg.member.roles.cache.some(role => role.id == rolesThatCanUpdate[i])) canUpdate = true;
 		}
-		if (!canUpdate) {
-			// msg.reply("You do not have permissions to use this")
-			return;
-		}
+		// if (!canUpdate) {
+		// 	// msg.reply("You do not have permissions to use this")
+		// 	return;
+		// }
 		if (msg.content.startsWith("!dp")) {
 			let memberList = [];
 			msg.guild.members.cache.each(member => memberList.push(member.displayName));
