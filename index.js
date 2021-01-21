@@ -424,10 +424,10 @@ client.on('message', async msg => {
 		for (i = 0; i < rolesThatCanUpdate.length; i++) {
 			if (msg.member.roles.cache.some(role => role.id == rolesThatCanUpdate[i])) canUpdate = true;
 		}
-		// if (!canUpdate) {
-		// 	// msg.reply("You do not have permissions to use this")
-		// 	return;
-		// }
+		if (!canUpdate) {
+			// msg.reply("You do not have permissions to use this")
+			return;
+		}
 		if (msg.content.startsWith("!dp")) {
 			let memberList = [];
 			msg.guild.members.cache.each(member => memberList.push(member.displayName));
