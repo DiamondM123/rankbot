@@ -26,7 +26,7 @@ const downloadPage = (url) => {
 
 const determineLatestEvent = async (mode) => {
 	try {
-		let html = await downloadPage('https://mariokartboards.com/lounge/json/event.php?type=' + mode + '&all');
+		let html = await downloadPage('https://mariokartboards.com/lounge/json/event.php?type=' + mode + '&all&compress');
 		let parsedData = JSON.parse(html);
 		if (parsedData.length > 0)
 			return parsedData[0].warid.toString();
