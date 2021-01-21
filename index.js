@@ -387,14 +387,16 @@ const doTop50Stuff = async (msg_obj, mode) => {
 		pageContent = JSON.parse(pageContent);
 		let playerswithTop50 = [];
 		let playerswithTop50Col = msg_obj.guild.members.cache.filter(member => member.roles.cache.some(role => role.id == (mode == 'rt' ? '800958350446690304' : '800958359569694741')));
-		playerswithTop50Col.each(member => playerswithTop50.push(tran_str(member.displayName)));
+		if (playerswithTop50Col != undefined)
+			playerswithTop50Col.each(member => playerswithTop50.push(tran_str(member.displayName)));
 		for (i = 0; i < pageContent.length; i++) {
 			let currentPlayer = msg_obj.guild.members.cache.find(member => tran_str(member.displayName) == tran_str(pageContent[i].name));
 			if (currentPlayer != undefined) {
 				await currentPlayer.roles.add(mode == 'rt' ? '800958350446690304' : '800958359569694741');
 				msg_obj.channel.send(`<@${currentPlayer.id}> promoted to ${mode.toUpperCase()} <:top:795155129375522876>`);
 				let lolIndex = playerswithTop50.indexOf(tran_str(currentPlayer.displayName));
-				playerswithTop50.splice(lolIndex, 1);
+				if (lolIndex != undefined)
+					playerswithTop50.splice(lolIndex, 1);
 			}
 		}
 		for (i = 0; i < playerswithTop50.length; i++) {
