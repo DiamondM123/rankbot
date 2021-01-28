@@ -420,7 +420,7 @@ const doTop50Stuff = async (msg_obj, mode) => {
 			}
 		}
 		for (i = 0; i < playerswithTop50.length; i++) {
-			let currentPlayer = msg_obj.guild.members.cache.find(member => member.id == playerswithTop50[i]);
+			let currentPlayer = msg_obj.guild.member(playerswithTop50[i]);
 			if (currentPlayer != undefined) {
 				await currentPlayer.roles.remove(mode == 'rt' ? '800958350446690304' : '800958359569694741');
 				msg_obj.channel.send(`<@${currentPlayer.id}> has been demoted from ${mode.toUpperCase()} <:top:795155129375522876>`);
