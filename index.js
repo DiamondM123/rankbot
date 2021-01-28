@@ -10,6 +10,11 @@ config({
 	path: __dirname + "/.env"
 })
 
+
+
+const rtRoles = ["RT Iron", "RT Bronze", "RT Silver", "RT Gold", "RT Platinum", "RT Emerald", "RT Diamond", "RT Master", "RT Grandmaster"];
+const ctRoles = ["CT Iron", "CT Bronze", "CT Silver", "CT Gold", "CT Platinum", "CT Emerald", "CT Diamond", "CT Master", "CT Grandmaster"];
+
 const downloadPage = (url) => {
     return new Promise((resolve, reject) => {
         request(url, (error, response, body) => {
@@ -388,19 +393,34 @@ const doTop50Stuff = async (msg_obj, mode) => {
 		let playerswithTop50 = [];
 		let playerswithTop50Col = msg_obj.guild.members.cache.filter(member => member.roles.cache.some(role => role.id == (mode == 'rt' ? '800958350446690304' : '800958359569694741')));
 		if (playerswithTop50Col != undefined)
-			playerswithTop50Col.each(member => playerswithTop50.push(tran_str(member.displayName)));
+			playerswithTop50Col.each(member => playerswithTop50.push(member.id));
 		for (i = 0; i < pageContent.length; i++) {
-			let currentPlayer = msg_obj.guild.members.cache.find(member => tran_str(member.displayName) == tran_str(pageContent[i].name));
+			let currentPlayerCollection = msg_obj.guild.members.cache.filter(member => tran_str(member.displayName) == tran_str(pageContent[i].name) && !member.roles.cache.some(role => role.name == "Unverified") && member.roles.cache.some(role => (mode == 'rt' ? rtRoles.includes(role.name) : ctRoles.includes(role.name))));
+			let somePlayerArr = [], currentPlayer;
+			currentPlayerCollection.each(member => somePlayerArr.push(member.id));
+			if (somePlayerArr.length > 1) {
+				let somestr = '';
+				for (j = 0; j < somePlayerArr.length; j++) {
+					somestr += (j != 0 ? " & " : "") + "<@" + somePlayerArr[j] + ">";
+				}
+				msg_obj.channel.send(somestr + " have the same display name. <@" + somePlayerArr[0] + "> is being considered for the role");
+
+			}
+			currentPlayer = msg_obj.guild.member(somePlayerArr[0]);
 			if (currentPlayer != undefined) {
-				await currentPlayer.roles.add(mode == 'rt' ? '800958350446690304' : '800958359569694741');
-				msg_obj.channel.send(`<@${currentPlayer.id}> has been promoted to ${mode.toUpperCase()} <:top:795155129375522876>`);
-				let lolIndex = playerswithTop50.indexOf(tran_str(currentPlayer.displayName));
+				if (!currentPlayer.roles.cache.some(role => role.name == (mode == 'rt' ? '800958350446690304' : '800958359569694741'))) {
+					await currentPlayer.roles.add(mode == 'rt' ? '800958350446690304' : '800958359569694741');
+					msg_obj.channel.send(`<@${currentPlayer.id}> has been promoted to ${mode.toUpperCase()} <:top:795155129375522876>`);
+				} else {
+					msg_obj.channel.send(`<@${currentPlayer.id}> has maintained ${mode.toUpperCase()} <:top:795155129375522876>`);
+				}
+				let lolIndex = playerswithTop50.indexOf(currentPlayer.id);
 				if (lolIndex != undefined)
 					playerswithTop50.splice(lolIndex, 1);
 			}
 		}
 		for (i = 0; i < playerswithTop50.length; i++) {
-			let currentPlayer = msg_obj.guild.members.cache.find(member => tran_str(member.displayName) == tran_str(playerswithTop50));
+			let currentPlayer = msg_obj.guild.members.cache.find(member => member.id == playerswithTop50[i]);
 			if (currentPlayer != undefined) {
 				await currentPlayer.roles.remove(mode == 'rt' ? '800958350446690304' : '800958359569694741');
 				msg_obj.channel.send(`<@${currentPlayer.id}> has been demoted from ${mode.toUpperCase()} <:top:795155129375522876>`);
@@ -415,8 +435,7 @@ client.on('message', async msg => {
 	try {
 		//<:top:801111279157641246>
 		//msg.channel.send(emoji('top', msg));
-		const rtRoles = ["RT Iron", "RT Bronze", "RT Silver", "RT Gold", "RT Platinum", "RT Emerald", "RT Diamond", "RT Master", "RT Grandmaster"];
-		const ctRoles = ["CT Iron", "CT Bronze", "CT Silver", "CT Gold", "CT Platinum", "CT Emerald", "CT Diamond", "CT Master", "CT Grandmaster"];
+		
 		const combinedForDP = ["RT Iron", "RT Bronze", "RT Silver", "RT Gold", "RT Platinum", "RT Emerald", "RT Diamond", "RT Master", "RT Grandmaster", "CT Iron", "CT Bronze", "CT Silver", "CT Gold", "CT Platinum", "CT Emerald", "CT Diamond", "CT Master", "CT Grandmaster"];
 		msg.content = msg.content.toLowerCase();
 		if (!msg.content.startsWith("!rt") && !msg.content.startsWith("!ct") && !msg.content.startsWith("!dp") && !msg.content.startsWith("!top50")) return;
