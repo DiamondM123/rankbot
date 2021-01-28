@@ -453,6 +453,7 @@ client.on('message', async msg => {
 		if (msg.content.startsWith("!top50")) {
 			doTop50Stuff(msg, 'rt');
 			doTop50Stuff(msg, 'ct');
+			return msg.delete();
 		}
 		//START
 		const commandParams = msg.content.split(/\s+/);
