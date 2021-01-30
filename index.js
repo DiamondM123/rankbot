@@ -625,7 +625,7 @@ client.on('message', async msg => {
 					if (!hasSpecialRole)
 						await currentPlayer.roles.add(serverRole.id);
 					if (hasDupRoles)
-						msg.reply(`${currentPlayer.displayName} has multiple ${globalMode.toUpperCase()} roles. Please check if they promoted/demoted to a temprole`);
+						msg.reply(`${currentPlayer.displayName} has multiple ${globalMode.toUpperCase()} roles. Check if they promoted/demoted to a temprole`);
 				}
 			}
 		}
