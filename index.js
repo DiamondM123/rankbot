@@ -69,7 +69,9 @@ const getRequest = async (mode, warid, msg_obj) => {
 						await currentPlayer.roles.add(mode == "rt" ? '800958350446690304' : '800958359569694741');
 					} else if (currentPlayer != undefined) {
 						//console.log("not good");
-						await currentPlayer.roles.remove(mode == "rt" ? '800958350446690304' : '800958359569694741');
+						if (currentPlayer.roles.cache.some(role => role.id == (mode == "rt" ? '800958350446690304' : '800958359569694741'))) {
+							await currentPlayer.roles.remove(mode == "rt" ? '800958350446690304' : '800958359569694741');
+						}
 					}
 					if (currentMMR < 1000) {
 						returnArray.push(mode.toUpperCase() + " Iron");
@@ -134,7 +136,9 @@ const getRequest = async (mode, warid, msg_obj) => {
 						await currentPlayer.roles.add(mode == "rt" ? '800958350446690304' : '800958359569694741');
 					} else if (currentPlayer != undefined) {
 						//console.log("not good");
-						await currentPlayer.roles.remove(mode == "rt" ? '800958350446690304' : '800958359569694741');
+						if (currentPlayer.roles.cache.some(role => role.id == (mode == "rt" ? '800958350446690304' : '800958359569694741'))) {
+							await currentPlayer.roles.remove(mode == "rt" ? '800958350446690304' : '800958359569694741');
+						}
 					}
 
 					//RTROLES
