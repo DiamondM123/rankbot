@@ -10,6 +10,10 @@ config({
 	path: __dirname + "/.env"
 })
 
+
+const rtRoles = ["RT Iron", "RT Bronze", "RT Silver", "RT Gold", "RT Platinum", "RT Emerald", "RT Diamond", "RT Master", "RT Grandmaster"];
+const ctRoles = ["CT Iron", "CT Bronze", "CT Silver", "CT Gold", "CT Platinum", "CT Emerald", "CT Diamond", "CT Master", "CT Grandmaster"];
+
 const downloadPage = (url) => {
     return new Promise((resolve, reject) => {
         request(url, (error, response, body) => {
@@ -26,7 +30,7 @@ const downloadPage = (url) => {
 
 const determineLatestEvent = async (mode) => {
 	try {
-		let html = await downloadPage('https://mariokartboards.com/lounge/json/event.php?type=' + mode + '&all');
+		let html = await downloadPage('https://mariokartboards.com/lounge/json/event.php?type=' + mode + '&all&compress');
 		let parsedData = JSON.parse(html);
 		if (parsedData.length > 0)
 			return parsedData[0].warid.toString();
@@ -53,6 +57,7 @@ const tran_str = (inp) => {
 const getRequest = async (mode, warid, msg_obj) => {
 	var roles = [], members = [];
 	try {
+		const checkRoles = mode == 'rt' ? rtRoles : ctRoles;
 		if (isNaN(warid)) {
 			let html = await downloadPage('https://mariokartboards.com/lounge/json/player.php?type=' + mode + '&name=' + warid);
 			let parsedData = JSON.parse(html);
@@ -61,7 +66,21 @@ const getRequest = async (mode, warid, msg_obj) => {
 				for (i = 0; i < parsedData.length; i++) {
 					returnArray.push(parsedData[i].name);
 					let currentMMR = Number(parsedData[i].current_mmr);
-					let currentPlayer = msg_obj.guild.members.cache.find(member => tran_str(member.displayName) === tran_str(parsedData[i].name));
+
+					let idsHolder = [];
+					let currentPlayerCollection = msg_obj.guild.members.cache.filter(member => tran_str(member.displayName) === tran_str(parsedData[i].name) && member.roles.cache.some(role => checkRoles.includes(role.name)) && !member.roles.cache.some(role => role.name === "Unverified"));
+					if (currentPlayerCollection !== undefined)
+						currentPlayerCollection.each(member => idsHolder.push(member.id));
+					let outStr = '';
+					for (j = 0; j < idsHolder.length; j++) {
+						outStr += (j != 0 ? " & " : "") + "<@" + idsHolder[j] + ">";
+					}
+					if (idsHolder.length > 1) {
+						msg_obj.channel.send(`Multiple people found with the same display name: ${outStr}\nMake sure the correct one receives the top 50 role`);
+					}
+
+					let currentPlayer = msg_obj.guild.member(idsHolder[0]);
+
 					if (Number(parsedData[i].ranking) <= 50 && currentPlayer != undefined) {
 						if (!currentPlayer.roles.cache.some(role => role.id == (mode == "rt" ? '800958350446690304' : '800958359569694741'))) {
 							msg_obj.channel.send(`<@${currentPlayer.id}> ` + emoji('top', msg_obj));
@@ -69,7 +88,7 @@ const getRequest = async (mode, warid, msg_obj) => {
 						await currentPlayer.roles.add(mode == "rt" ? '800958350446690304' : '800958359569694741');
 					} else if (currentPlayer != undefined) {
 						//console.log("not good");
-						if (currentPlayer.roles.cache.some(role => role.id == (mode == "rt" ? '800958350446690304' : '800958359569694741'))) {
+						if (currentPlayer.roles.cache.some(role => role.id == (mode == "rt" ? '800958350446690304' : '800958359569694741'))) {	
 							await currentPlayer.roles.remove(mode == "rt" ? '800958350446690304' : '800958359569694741');
 						}
 					}
@@ -113,7 +132,7 @@ const getRequest = async (mode, warid, msg_obj) => {
 				return false;
 			return returnArray;
 		} else {
-			let html = await downloadPage('https://mariokartboards.com/lounge/json/event.php?type=' + mode + '&id=' + warid);
+			let html = await downloadPage('https://mariokartboards.com/lounge/json/event.php?type=' + mode + '&id=' + warid + "&compress");
 			let parsedData = JSON.parse(html);
 			if (parsedData.length > 1) {
 				for (i = 0; i < parsedData.length; i++) {
@@ -123,9 +142,23 @@ const getRequest = async (mode, warid, msg_obj) => {
 					let top50JSON = await downloadPage('https://mariokartboards.com/lounge/json/player.php?type=' + mode + '&name=' + parsedData[i].name);
 					top50JSON = JSON.parse(top50JSON);
 					// console.log(top50JSON[0].ranking);
-					let currentPlayer = msg_obj.guild.members.cache.find(member => tran_str(member.displayName) === tran_str(parsedData[i].name));
+					
 
-					if (Number(top50JSON[0].ranking) <= 50 && currentPlayer != undefined) {
+					let idsHolder = [];
+					let currentPlayerCollection = msg_obj.guild.members.cache.filter(member => tran_str(member.displayName) === tran_str(parsedData[i].name) && member.roles.cache.some(role => checkRoles.includes(role.name)) && !member.roles.cache.some(role => role.name === "Unverified"));
+					if (currentPlayerCollection !== undefined)
+						currentPlayerCollection.each(member => idsHolder.push(member.id));
+					let outStr = '';
+					for (j = 0; j < idsHolder.length; j++) {
+						outStr += (j != 0 ? " & " : "") + "<@" + idsHolder[j] + ">";
+					}
+					if (idsHolder.length > 1) {
+						msg_obj.channel.send(`Multiple people found with the same display name: ${outStr}\nMake sure the correct one receives the top 50 role`);
+					}
+
+					let currentPlayer = msg_obj.guild.member(idsHolder[0]);
+
+					if (Number(top50JSON.ranking) <= 50 && currentPlayer != undefined) {
 						//console.log("good");
 						if (!currentPlayer.roles.cache.some(role => role.id == (mode == "rt" ? '800958350446690304' : '800958359569694741'))) {
 							//800958912705724426
@@ -136,7 +169,7 @@ const getRequest = async (mode, warid, msg_obj) => {
 						await currentPlayer.roles.add(mode == "rt" ? '800958350446690304' : '800958359569694741');
 					} else if (currentPlayer != undefined) {
 						//console.log("not good");
-						if (currentPlayer.roles.cache.some(role => role.id == (mode == "rt" ? '800958350446690304' : '800958359569694741'))) {
+						if (currentPlayer.roles.cache.some(role => role.id == (mode == "rt" ? '800958350446690304' : '800958359569694741'))) {	
 							await currentPlayer.roles.remove(mode == "rt" ? '800958350446690304' : '800958359569694741');
 						}
 					}
@@ -415,9 +448,14 @@ client.on('message', async msg => {
 	try {
 		//<:top:801111279157641246>
 		//msg.channel.send(emoji('top', msg));
-		const rtRoles = ["RT Iron", "RT Bronze", "RT Silver", "RT Gold", "RT Platinum", "RT Emerald", "RT Diamond", "RT Master", "RT Grandmaster"];
-		const ctRoles = ["CT Iron", "CT Bronze", "CT Silver", "CT Gold", "CT Platinum", "CT Emerald", "CT Diamond", "CT Master", "CT Grandmaster"];
-		const combinedForDP = ["RT Iron", "RT Bronze", "RT Silver", "RT Gold", "RT Platinum", "RT Emerald", "RT Diamond", "RT Master", "RT Grandmaster", "CT Iron", "CT Bronze", "CT Silver", "CT Gold", "CT Platinum", "CT Emerald", "CT Diamond", "CT Master", "CT Grandmaster"];
+		var combinedForDP = [];
+		for (i = 0; i < rtRoles.length; i++) {
+			combinedForDP.push(rtRoles[i]);
+		}
+		for (i = 0; i < ctRoles.length; i++) {
+			combinedForDP.push(ctRoles[i]);
+		}
+
 		msg.content = msg.content.toLowerCase();
 		if (!msg.content.startsWith("!rt") && !msg.content.startsWith("!ct") && !msg.content.startsWith("!dp")) return;
 		const rolesThatCanUpdate = ['387347888935534593', '792805904047276032', '399382503825211393', '399384750923579392', '521149807994208295', '792891432301625364', '521154917675827221', '393600567781621761', '520808645252874240'];
@@ -426,10 +464,10 @@ client.on('message', async msg => {
 		for (i = 0; i < rolesThatCanUpdate.length; i++) {
 			if (msg.member.roles.cache.some(role => role.id == rolesThatCanUpdate[i])) canUpdate = true;
 		}
-		if (!canUpdate) {
-			// msg.reply("You do not have permissions to use this")
-			return;
-		}
+		// if (!canUpdate) {
+		// 	// msg.reply("You do not have permissions to use this")
+		// 	return;
+		// }
 		if (msg.content.startsWith("!dp")) {
 			let memberList = [];
 			msg.guild.members.cache.each(member => memberList.push(member.displayName));
@@ -462,7 +500,7 @@ client.on('message', async msg => {
 			partCommandParam = await determineLatestEvent(globalMode);
 		if (!partCommandParam) return send_dm(msg, "Error. Unable to retrieve latest war id");
 
-		const specialRoles = ["Boss", "Custom Track Arbitrator", "Lower Tier Arbitrator", "Higher Tier Arbitrator", "LT RT Reporter", "LT CT Reporter"];
+		const specialRoles = ["Boss", "Custom Track Arbitrator", "Lower Tier CT Arbitrator", "Higher Tier CT Arbitrator", "LT RT Reporter", "LT CT Reporter", "Lower Tier RT Arbitrator", "Higher Tier RT Arbitrator", "Developer"];
 		const modeRoles = (globalMode === "rt") ? rtRoles : ctRoles;
 		
 		if (commandParams.length > 2) {
