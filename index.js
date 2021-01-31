@@ -71,11 +71,11 @@ const getRequest = async (mode, warid, msg_obj) => {
 					let currentPlayerCollection = msg_obj.guild.members.cache.filter(member => tran_str(member.displayName) === tran_str(parsedData[i].name) && member.roles.cache.some(role => checkRoles.includes(role.name)) && !member.roles.cache.some(role => role.name === "Unverified"));
 					if (currentPlayerCollection !== undefined)
 						currentPlayerCollection.each(member => idsHolder.push(member.id));
-					let outStr = '';
-					for (j = 0; j < idsHolder.length; j++) {
-						outStr += (j != 0 ? " & " : "") + "<@" + idsHolder[j] + ">";
-					}
 					if (idsHolder.length > 1) {
+						let outStr = '';
+						for (j = 0; j < idsHolder.length; j++) {
+							outStr += (j != 0 ? " & " : "") + "<@" + idsHolder[j] + ">";
+						}
 						msg_obj.channel.send(`Multiple people found with the same display name: ${outStr}\nMake sure the correct one receives the top 50 role`);
 					}
 
@@ -148,11 +148,11 @@ const getRequest = async (mode, warid, msg_obj) => {
 					let currentPlayerCollection = msg_obj.guild.members.cache.filter(member => tran_str(member.displayName) === tran_str(parsedData[i].name) && member.roles.cache.some(role => checkRoles.includes(role.name)) && !member.roles.cache.some(role => role.name === "Unverified"));
 					if (currentPlayerCollection !== undefined)
 						currentPlayerCollection.each(member => idsHolder.push(member.id));
-					let outStr = '';
-					for (j = 0; j < idsHolder.length; j++) {
-						outStr += (j != 0 ? " & " : "") + "<@" + idsHolder[j] + ">";
-					}
 					if (idsHolder.length > 1) {
+						let outStr = '';
+						for (j = 0; j < idsHolder.length; j++) {
+							outStr += (j != 0 ? " & " : "") + "<@" + idsHolder[j] + ">";
+						}
 						msg_obj.channel.send(`Multiple people found with the same display name: ${outStr}\nMake sure the correct one receives the top 50 role`);
 					}
 
