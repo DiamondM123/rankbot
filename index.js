@@ -73,18 +73,18 @@ const getRequest = async (mode, warid, msg_obj) => {
 					let currentPlayerCollection = msg_obj.guild.members.cache.filter(member => tran_str(member.displayName) === tran_str(parsedData[i].name) && member.roles.cache.some(role => checkRoles.includes(role.name)) && !member.roles.cache.some(role => role.name === "Unverified"));
 					if (currentPlayerCollection !== undefined)
 						currentPlayerCollection.each(member => idsHolder.push(member.id));
-					if (idsHolder.length > 1) {
-						let outStr = '';
-						for (j = 0; j < idsHolder.length; j++) {
-							outStr += (j != 0 ? " & " : "") + "<@" + idsHolder[j] + ">";
-						}
-						finalTop50Str += `\nMultiple people found with the same display name: ${outStr}\nMake sure the correct one receives the top 50 role`;
-					}
 
 					let currentPlayer = await msg_obj.guild.member(idsHolder[0]);
 
 					if (Number(parsedData[i].ranking) <= 50 && currentPlayer != undefined) {
 						if (!currentPlayer.roles.cache.some(role => role.id == (mode == "rt" ? '800958350446690304' : '800958359569694741'))) {
+							if (idsHolder.length > 1) {
+								let outStr = '';
+								for (j = 0; j < idsHolder.length; j++) {
+									outStr += (j != 0 ? " & " : "") + "<@" + idsHolder[j] + ">";
+								}
+								finalTop50Str += `\nMultiple people found with the same display name: ${outStr}\nMake sure the correct one receives the top 50 role`;
+							}
 							finalTop50Str += `\n<@${currentPlayer.id}> <:top:795155129375522876>`;
 						}
 						await currentPlayer.roles.add(mode == "rt" ? '800958350446690304' : '800958359569694741');
@@ -150,13 +150,6 @@ const getRequest = async (mode, warid, msg_obj) => {
 					let currentPlayerCollection = msg_obj.guild.members.cache.filter(member => tran_str(member.displayName) === tran_str(parsedData[i].name) && member.roles.cache.some(role => checkRoles.includes(role.name)) && !member.roles.cache.some(role => role.name === "Unverified"));
 					if (currentPlayerCollection !== undefined)
 						currentPlayerCollection.each(member => idsHolder.push(member.id));
-					if (idsHolder.length > 1) {
-						let outStr = '';
-						for (j = 0; j < idsHolder.length; j++) {
-							outStr += (j != 0 ? " & " : "") + "<@" + idsHolder[j] + ">";
-						}
-						finalTop50Str += `\nMultiple people found with the same display name: ${outStr}\nMake sure the correct one receives the top 50 role`;
-					}
 
 					let currentPlayer = await msg_obj.guild.member(idsHolder[0]);
 
@@ -164,6 +157,13 @@ const getRequest = async (mode, warid, msg_obj) => {
 					if (Number(jsThings.ranking) <= 50 && currentPlayer != undefined) {
 						//console.log("good");
 						if (!currentPlayer.roles.cache.some(role => role.id == (mode == "rt" ? '800958350446690304' : '800958359569694741'))) {
+							if (idsHolder.length > 1) {
+								let outStr = '';
+								for (j = 0; j < idsHolder.length; j++) {
+									outStr += (j != 0 ? " & " : "") + "<@" + idsHolder[j] + ">";
+								}
+								finalTop50Str += `\nMultiple people found with the same display name: ${outStr}\nMake sure the correct one receives the top 50 role`;
+							}
 							//800958912705724426
 							//800986394230652928
 							//801111279157641246
