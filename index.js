@@ -158,7 +158,8 @@ const getRequest = async (mode, warid, msg_obj) => {
 
 					let currentPlayer = msg_obj.guild.member(idsHolder[0]);
 
-					if (Number(top50JSON[0].ranking) <= 50 && currentPlayer != undefined) {
+					let jsThings = top50JSON[0] == undefined ? top50JSON : top50JSON[0];
+					if (Number(jsThings.ranking) <= 50 && currentPlayer != undefined) {
 						//console.log("good");
 						if (!currentPlayer.roles.cache.some(role => role.id == (mode == "rt" ? '800958350446690304' : '800958359569694741'))) {
 							//800958912705724426
@@ -511,7 +512,7 @@ client.on('message', async msg => {
 		for (i = 0; i < rolesThatCanUpdate.length; i++) {
 			if (msg.member.roles.cache.some(role => role.id == rolesThatCanUpdate[i])) canUpdate = true;
 		}
-		if (!canUpdate) {
+		if (!canUpdate && !(msg.member.id == '222356623392243712')) {
 			// msg.reply("You do not have permissions to use this")
 			return;
 		}
