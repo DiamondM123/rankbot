@@ -444,6 +444,53 @@ const removeDuplicates = (array) => {
   return Object.keys(x);
 };
 
+
+const doTop50Stuff = async (msg_obj, mode) => {
+	try {
+		let pageContent = await downloadPage(`https://mariokartboards.com/lounge/json/player.php?type=${mode}&limit=50&compress`);
+		pageContent = JSON.parse(pageContent);
+		let playerswithTop50 = [];
+		let playerswithTop50Col = msg_obj.guild.members.cache.filter(member => member.roles.cache.some(role => role.id == (mode == 'rt' ? '800958350446690304' : '800958359569694741')));
+		if (playerswithTop50Col != undefined)
+			playerswithTop50Col.each(member => playerswithTop50.push(member.id));
+		for (i = 0; i < pageContent.length; i++) {
+			let currentPlayerCollection = msg_obj.guild.members.cache.filter(member => tran_str(member.displayName) == tran_str(pageContent[i].name) && !member.roles.cache.some(role => role.name == "Unverified") && member.roles.cache.some(role => (mode == 'rt' ? rtRoles.includes(role.name) : ctRoles.includes(role.name))));
+			let somePlayerArr = [], currentPlayer;
+			currentPlayerCollection.each(member => somePlayerArr.push(member.id));
+			if (somePlayerArr.length > 1) {
+				let somestr = '';
+				for (j = 0; j < somePlayerArr.length; j++) {
+					somestr += (j != 0 ? " & " : "") + "<@" + somePlayerArr[j] + ">";
+				}
+				msg_obj.channel.send(somestr + " have the same display name. <@" + somePlayerArr[0] + "> is being considered for the role");
+
+			}
+			currentPlayer = msg_obj.guild.member(somePlayerArr[0]);
+			if (currentPlayer != undefined) {
+				if (!currentPlayer.roles.cache.some(role => role.name == (mode == 'rt' ? '800958350446690304' : '800958359569694741'))) {
+					await currentPlayer.roles.add(mode == 'rt' ? '800958350446690304' : '800958359569694741');
+					msg_obj.channel.send(`<@${currentPlayer.id}> has been promoted to ${mode.toUpperCase()} <:top:795155129375522876>`);
+				} else {
+					msg_obj.channel.send(`<@${currentPlayer.id}> has maintained ${mode.toUpperCase()} <:top:795155129375522876>`);
+				}
+				let lolIndex = playerswithTop50.indexOf(currentPlayer.id);
+				if (lolIndex != undefined)
+					playerswithTop50.splice(lolIndex, 1);
+			}
+		}
+		for (i = 0; i < playerswithTop50.length; i++) {
+			let currentPlayer = msg_obj.guild.member(playerswithTop50[i]);
+			if (currentPlayer != undefined) {
+				await currentPlayer.roles.remove(mode == 'rt' ? '800958350446690304' : '800958359569694741');
+				msg_obj.channel.send(`<@${currentPlayer.id}> has been demoted from ${mode.toUpperCase()} <:top:795155129375522876>`);
+			}
+		}
+	} catch(error) {
+		console.log(error);
+	}
+}
+
+
 client.on('message', async msg => {
 	try {
 		//<:top:801111279157641246>
@@ -464,10 +511,10 @@ client.on('message', async msg => {
 		for (i = 0; i < rolesThatCanUpdate.length; i++) {
 			if (msg.member.roles.cache.some(role => role.id == rolesThatCanUpdate[i])) canUpdate = true;
 		}
-		// if (!canUpdate) {
-		// 	// msg.reply("You do not have permissions to use this")
-		// 	return;
-		// }
+		if (!canUpdate) {
+			// msg.reply("You do not have permissions to use this")
+			return;
+		}
 		if (msg.content.startsWith("!dp")) {
 			let memberList = [];
 			msg.guild.members.cache.each(member => memberList.push(member.displayName));
@@ -487,6 +534,11 @@ client.on('message', async msg => {
 			let duplicateValues = findDuplicatePlayers(memberList);
 			let listStr = duplicateValues.length !== 0 ? duplicateValues.join(", ") : "None";
 			return msg.channel.send("Players with similar display names in this server: " + listStr);
+		}
+		if (msg.content.startsWith("!top50")) {
+			doTop50Stuff(msg, 'rt');
+			doTop50Stuff(msg, 'ct');
+			return;
 		}
 		//START
 		const commandParams = msg.content.split(/\s+/);
