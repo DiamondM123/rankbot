@@ -158,7 +158,7 @@ const getRequest = async (mode, warid, msg_obj) => {
 
 					let currentPlayer = msg_obj.guild.member(idsHolder[0]);
 
-					if (Number(top50JSON.ranking) <= 50 && currentPlayer != undefined) {
+					if (Number(top50JSON[0].ranking) <= 50 && currentPlayer != undefined) {
 						//console.log("good");
 						if (!currentPlayer.roles.cache.some(role => role.id == (mode == "rt" ? '800958350446690304' : '800958359569694741'))) {
 							//800958912705724426
