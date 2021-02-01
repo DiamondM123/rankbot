@@ -14,6 +14,8 @@ config({
 const rtRoles = ["RT Iron", "RT Bronze", "RT Silver", "RT Gold", "RT Platinum", "RT Emerald", "RT Diamond", "RT Master", "RT Grandmaster"];
 const ctRoles = ["CT Iron", "CT Bronze", "CT Silver", "CT Gold", "CT Platinum", "CT Emerald", "CT Diamond", "CT Master", "CT Grandmaster"];
 
+var finalTop50Str = "";
+
 const downloadPage = (url) => {
     return new Promise((resolve, reject) => {
         request(url, (error, response, body) => {
@@ -76,14 +78,14 @@ const getRequest = async (mode, warid, msg_obj) => {
 						for (j = 0; j < idsHolder.length; j++) {
 							outStr += (j != 0 ? " & " : "") + "<@" + idsHolder[j] + ">";
 						}
-						msg_obj.channel.send(`Multiple people found with the same display name: ${outStr}\nMake sure the correct one receives the top 50 role`);
+						finalTop50Str += `\nMultiple people found with the same display name: ${outStr}\nMake sure the correct one receives the top 50 role`;
 					}
 
-					let currentPlayer = msg_obj.guild.member(idsHolder[0]);
+					let currentPlayer = await msg_obj.guild.member(idsHolder[0]);
 
 					if (Number(parsedData[i].ranking) <= 50 && currentPlayer != undefined) {
 						if (!currentPlayer.roles.cache.some(role => role.id == (mode == "rt" ? '800958350446690304' : '800958359569694741'))) {
-							msg_obj.channel.send(`<@${currentPlayer.id}> ` + emoji('top', msg_obj));
+							finalTop50Str += `\n<@${currentPlayer.id}> <:top:795155129375522876>`;
 						}
 						await currentPlayer.roles.add(mode == "rt" ? '800958350446690304' : '800958359569694741');
 					} else if (currentPlayer != undefined) {
@@ -153,10 +155,10 @@ const getRequest = async (mode, warid, msg_obj) => {
 						for (j = 0; j < idsHolder.length; j++) {
 							outStr += (j != 0 ? " & " : "") + "<@" + idsHolder[j] + ">";
 						}
-						msg_obj.channel.send(`Multiple people found with the same display name: ${outStr}\nMake sure the correct one receives the top 50 role`);
+						finalTop50Str += `\nMultiple people found with the same display name: ${outStr}\nMake sure the correct one receives the top 50 role`;
 					}
 
-					let currentPlayer = msg_obj.guild.member(idsHolder[0]);
+					let currentPlayer = await msg_obj.guild.member(idsHolder[0]);
 
 					let jsThings = top50JSON[0] == undefined ? top50JSON : top50JSON[0];
 					if (Number(jsThings.ranking) <= 50 && currentPlayer != undefined) {
@@ -165,7 +167,7 @@ const getRequest = async (mode, warid, msg_obj) => {
 							//800958912705724426
 							//800986394230652928
 							//801111279157641246
-							msg_obj.channel.send(`<@${currentPlayer.id}> ` + emoji('top', msg_obj));
+							finalTop50Str += `\n<@${currentPlayer.id}> <:top:795155129375522876>`;
 						}
 						await currentPlayer.roles.add(mode == "rt" ? '800958350446690304' : '800958359569694741');
 					} else if (currentPlayer != undefined) {
@@ -470,9 +472,9 @@ const doTop50Stuff = async (msg_obj, mode) => {
 			if (currentPlayer != undefined) {
 				if (!currentPlayer.roles.cache.some(role => role.name == (mode == 'rt' ? '800958350446690304' : '800958359569694741'))) {
 					await currentPlayer.roles.add(mode == 'rt' ? '800958350446690304' : '800958359569694741');
-					msg_obj.channel.send(`<@${currentPlayer.id}> has been promoted to ${mode.toUpperCase()} <:top:795155129375522876>`);
+					await msg_obj.channel.send(`<@${currentPlayer.id}> has been promoted to ${mode.toUpperCase()} <:top:795155129375522876>`);
 				} else {
-					msg_obj.channel.send(`<@${currentPlayer.id}> has maintained ${mode.toUpperCase()} <:top:795155129375522876>`);
+					await msg_obj.channel.send(`<@${currentPlayer.id}> has maintained ${mode.toUpperCase()} <:top:795155129375522876>`);
 				}
 				let lolIndex = playerswithTop50.indexOf(currentPlayer.id);
 				if (lolIndex != undefined)
@@ -496,6 +498,7 @@ client.on('message', async msg => {
 	try {
 		//<:top:801111279157641246>
 		//msg.channel.send(emoji('top', msg));
+		finalTop50Str = "";
 		var combinedForDP = [];
 		for (i = 0; i < rtRoles.length; i++) {
 			combinedForDP.push(rtRoles[i]);
@@ -697,7 +700,8 @@ client.on('message', async msg => {
 			}
 		}
 		if (mentionPlayers !== '')
-			msg.channel.send(mentionPlayers);
+			await msg.channel.send(mentionPlayers);
+		if (finalTop50Str != '') await msg.channel.send(finalTop50Str.substring(1));
 	} catch (error) {
 		console.error('ERROR:');
         console.error(error);
