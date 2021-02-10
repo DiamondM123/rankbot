@@ -200,7 +200,9 @@ const removeDuplicates = (array) => {
 
 const doTop50Stuff = async (msg_obj, mode) => {
 	try {
-		let pageContent = await downloadPage(`https://mariokartboards.com/lounge/json/player.php?type=${mode}&limit=100&compress`); // extra for rob rule
+		let ldbPage = await downloadPage(`https://mariokartboards.com/lounge/json/leaderboard.php?type=${mode}`);
+		ldbPage = JSON.parse(ldbPage);
+		let pageContent = await downloadPage(`https://mariokartboards.com/lounge/json/player.php?type=${mode}&limit=300&compress`); // extra for rob rule
 		pageContent = JSON.parse(pageContent);
 		let playerswithTop50 = [];
 		let playerswithTop50Col = msg_obj.guild.members.cache.filter(member => member.roles.cache.some(role => role.id == (mode == 'rt' ? '800958350446690304' : '800958359569694741')));
@@ -225,10 +227,8 @@ const doTop50Stuff = async (msg_obj, mode) => {
 			}
 			currentPlayer = msg_obj.guild.member(somePlayerArr[0]);
 			if (currentPlayer != undefined) {
-				let currentProfile = await downloadPage(`https://mariokartboards.com/lounge/json/player.php?type=${mode}&name=${pageContent[i].name}`);
-				currentProfile = JSON.parse(currentProfile);
 				let currentDate = new Date();
-				let compareDate = new Date(currentProfile.update_date);
+				let compareDate = new Date(ldbPage[i].update_date);
 				if (currentDate - compareDate > 86400*1000*7) { // 1 week
 					counter--;
 					await currentPlayer.roles.remove(mode == 'rt' ? '800958350446690304' : '800958359569694741');
