@@ -14,6 +14,9 @@ config({
 const rtRoles = ["RT Iron", "RT Bronze", "RT Silver", "RT Gold", "RT Platinum", "RT Emerald", "RT Diamond", "RT Master", "RT Grandmaster"];
 const ctRoles = ["CT Iron", "CT Bronze", "CT Silver", "CT Gold", "CT Platinum", "CT Emerald", "CT Diamond", "CT Master", "CT Grandmaster"];
 
+const rtRanges = [1000, 2500, 4000, 5500, 7000, 8500, 10000, 11000];
+const ctRanges = [1000, 2250, 3500, 4500, 5500, 7000, 8500, 10000];
+
 var finalTop50Str = "";
 
 const downloadPage = (url) => {
@@ -60,74 +63,49 @@ const getRequest = async (mode, warid, msg_obj) => {
 	var roles = [], members = [];
 	try {
 		const checkRoles = mode == 'rt' ? rtRoles : ctRoles;
+		let top50names = [];
+		let top50html = await downloadPage(`https://mariokartboards.com/lounge/json/player.php?type=${mode}&limit=50&compress`);
+		let top50json = JSON.parse(top50html);
+		let top50OnPage = [];
+		for (let i = 0; i < top50json.length; i++) {
+			top50OnPage.push(tran_str(top50json[i].name));
+		}
+		let currentPlayerCollection = await msg_obj.guild.members.cache.filter(member => member.roles.cache.some(role => role.id == (mode == 'rt' ? '800958350446690304' : '800958359569694741')));
+		await currentPlayerCollection.each(member => top50names.push(tran_str(member.displayName)));
+		// remove the role from the people that have it and don't meet requirements
+		for (let i = 0; i < top50names.length; i++) {
+			if (!top50OnPage.includes(top50names[i])) {
+				let currentPlayer = await msg_obj.guild.members.cache.find(member => tran_str(member.displayName) == top50names[i] && member.roles.cache.some(role => checkRoles.includes(role.name)) && !member.roles.cache.some(role => role.name === "Unverified"));
+				if (currentPlayer != undefined) await currentPlayer.roles.remove(mode == "rt" ? '800958350446690304' : '800958359569694741');
+			}
+		}
+		// add role only to those who don't have it already
+		for (let i = 0; i < top50OnPage.length; i++) {
+			if (!top50names.includes(top50OnPage[i])) {
+				let currentPlayer = await msg_obj.guild.members.cache.find(member => tran_str(member.displayName) == top50names[i] && member.roles.cache.some(role => checkRoles.includes(role.name)) && !member.roles.cache.some(role => role.name === "Unverified"));
+				if (currentPlayer != undefined) {
+					await currentPlayer.roles.add(mode == "rt" ? '800958350446690304' : '800958359569694741');
+					finalTop50Str += `\n<@${currentPlayer.id} <:top:795155129375522876>`;
+				}
+			}
+		}
+		const currentRange = mode == 'rt' ? rtRanges : ctRanges;
 		if (isNaN(warid)) {
 			let html = await downloadPage('https://mariokartboards.com/lounge/json/player.php?type=' + mode + '&name=' + warid);
 			let parsedData = JSON.parse(html);
 			let returnArray = [];
 			if (parsedData.length > 0) {
-				for (i = 0; i < parsedData.length; i++) {
+				for (let i = 0; i < parsedData.length; i++) {
 					returnArray.push(parsedData[i].name);
 					let currentMMR = Number(parsedData[i].current_mmr);
-
-					let idsHolder = [];
-					let currentPlayerCollection = msg_obj.guild.members.cache.filter(member => tran_str(member.displayName) === tran_str(parsedData[i].name) && member.roles.cache.some(role => checkRoles.includes(role.name)) && !member.roles.cache.some(role => role.name === "Unverified"));
-					if (currentPlayerCollection !== undefined)
-						currentPlayerCollection.each(member => idsHolder.push(member.id));
-
-					let currentPlayer = await msg_obj.guild.member(idsHolder[0]);
-
-					if (Number(parsedData[i].ranking) <= 50 && currentPlayer != undefined) {
-						if (!currentPlayer.roles.cache.some(role => role.id == (mode == "rt" ? '800958350446690304' : '800958359569694741'))) {
-							if (idsHolder.length > 1) {
-								let outStr = '';
-								for (j = 0; j < idsHolder.length; j++) {
-									outStr += (j != 0 ? " & " : "") + "<@" + idsHolder[j] + ">";
-								}
-								finalTop50Str += `\nMultiple people found with the same display name: ${outStr}\nMake sure the correct one receives the top 50 role`;
-							}
-							finalTop50Str += `\n<@${currentPlayer.id}> <:top:795155129375522876>`;
+					for (let j = 0; j < checkRoles.length; j++) {
+						if (j == 0) {
+							if (currentMMR < currentRange[j]) returnArray.push(checkRoles[j]);
+						} else if (j == checkRoles.length-1) {
+							if (currentMMR >= currentRange[j-1]) returnArray.push(checkRoles[j]);
+						} else {
+							if (currentMMR >= currentRange[j-1] && currentMMR < currentRange[j]) returnArray.push(checkRoles[j]);
 						}
-						await currentPlayer.roles.add(mode == "rt" ? '800958350446690304' : '800958359569694741');
-					} else if (currentPlayer != undefined) {
-						//console.log("not good");
-						if (currentPlayer.roles.cache.some(role => role.id == (mode == "rt" ? '800958350446690304' : '800958359569694741'))) {	
-							await currentPlayer.roles.remove(mode == "rt" ? '800958350446690304' : '800958359569694741');
-						}
-					}
-					if (currentMMR < 1000) {
-						returnArray.push(mode.toUpperCase() + " Iron");
-					} else if (currentMMR >= 1000 && currentMMR < 2500 && mode == "rt") {
-						returnArray.push(mode.toUpperCase() + " Bronze");
-					} else if (currentMMR >= 2500 && currentMMR < 4000 && mode == "rt") {
-						returnArray.push(mode.toUpperCase() + " Silver");
-					} else if (currentMMR >= 4000 && currentMMR < 5500 && mode == "rt") {
-						returnArray.push(mode.toUpperCase() + " Gold");
-					} else if (currentMMR >= 5500 && currentMMR < 7000 && mode == "rt") {
-						returnArray.push(mode.toUpperCase() + " Platinum");
-					} else if (currentMMR >= 7000 && currentMMR < 8500 && mode == "rt") {
-						returnArray.push(mode.toUpperCase() + " Emerald");
-					} else if (currentMMR >= 8500 && currentMMR < 10000 && mode == "rt") {
-						returnArray.push(mode.toUpperCase() + " Diamond");
-					} else if (currentMMR >= 10000 && currentMMR < 11000 && mode == "rt") {
-						returnArray.push(mode.toUpperCase() + " Master");
-					} else if (currentMMR >= 11000 && mode == "rt") {
-						returnArray.push(mode.toUpperCase() + " Grandmaster");
-					} else if (currentMMR >= 1000 && currentMMR < 2250 && mode == "ct") {
-						returnArray.push(mode.toUpperCase() + " Bronze");
-					} else if (currentMMR >= 2250 && currentMMR < 3500 && mode == "ct") {
-						returnArray.push(mode.toUpperCase() + " Silver");
-					} else if (currentMMR >= 3500 && currentMMR < 4500 && mode == "ct") {
-						returnArray.push(mode.toUpperCase() + " Gold");
-					} else if (currentMMR >= 4500 && currentMMR < 5500 && mode == "ct") {
-						returnArray.push(mode.toUpperCase() + " Platinum");
-					} else if (currentMMR >= 5500 && currentMMR < 7000 && mode == "ct") {
-						returnArray.push(mode.toUpperCase() + " Emerald");
-					} else if (currentMMR >= 7000 && currentMMR < 8500 && mode == "ct") {
-						returnArray.push(mode.toUpperCase() + " Diamond");
-					} else if (currentMMR >= 8500 && currentMMR < 10000 && mode == "ct") {
-						returnArray.push(mode.toUpperCase() + " Master");
-					} else if (currentMMR >= 10000 && mode == "ct") {
-						returnArray.push(mode.toUpperCase() + " Grandmaster");
 					}
 				}
 			} else
@@ -137,250 +115,22 @@ const getRequest = async (mode, warid, msg_obj) => {
 			let html = await downloadPage('https://mariokartboards.com/lounge/json/event.php?type=' + mode + '&id=' + warid + "&compress");
 			let parsedData = JSON.parse(html);
 			if (parsedData.length > 1) {
-				for (i = 0; i < parsedData.length; i++) {
+				for (let i = 0; i < parsedData.length; i++) {
 					let promotion = parsedData[i].promotion;
 					let currentMr = parsedData[i].current_mmr;
 					let updatedMr = parsedData[i].updated_mmr;
-					let top50JSON = await downloadPage('https://mariokartboards.com/lounge/json/player.php?type=' + mode + '&name=' + parsedData[i].name);
-					top50JSON = JSON.parse(top50JSON);
-					// console.log(top50JSON[0].ranking);
-					
 
-					let idsHolder = [];
-					let currentPlayerCollection = msg_obj.guild.members.cache.filter(member => tran_str(member.displayName) === tran_str(parsedData[i].name) && member.roles.cache.some(role => checkRoles.includes(role.name)) && !member.roles.cache.some(role => role.name === "Unverified"));
-					if (currentPlayerCollection !== undefined)
-						currentPlayerCollection.each(member => idsHolder.push(member.id));
-
-					let currentPlayer = await msg_obj.guild.member(idsHolder[0]);
-
-					let jsThings = top50JSON[0] == undefined ? top50JSON : top50JSON[0];
-					if (Number(jsThings.ranking) <= 50 && currentPlayer != undefined) {
-						//console.log("good");
-						if (!currentPlayer.roles.cache.some(role => role.id == (mode == "rt" ? '800958350446690304' : '800958359569694741'))) {
-							if (idsHolder.length > 1) {
-								let outStr = '';
-								for (j = 0; j < idsHolder.length; j++) {
-									outStr += (j != 0 ? " & " : "") + "<@" + idsHolder[j] + ">";
-								}
-								finalTop50Str += `\nMultiple people found with the same display name: ${outStr}\nMake sure the correct one receives the top 50 role`;
-							}
-							//800958912705724426
-							//800986394230652928
-							//801111279157641246
-							finalTop50Str += `\n<@${currentPlayer.id}> <:top:795155129375522876>`;
+					for (let j = 0; j < currentRange.length; j++) {
+						if (currentMr >= currentRange[j] && updatedMr < currentRange[j]) {
+							members.push(parsedData[i].name);
+							roles.push(checkRoles[j]);
+							continue;
 						}
-						await currentPlayer.roles.add(mode == "rt" ? '800958350446690304' : '800958359569694741');
-					} else if (currentPlayer != undefined) {
-						//console.log("not good");
-						if (currentPlayer.roles.cache.some(role => role.id == (mode == "rt" ? '800958350446690304' : '800958359569694741'))) {	
-							await currentPlayer.roles.remove(mode == "rt" ? '800958350446690304' : '800958359569694741');
+						if (currentMr < currentRange[j] && updatedMr >= currentRange[j]) {
+							members.push(parsedData[i].name);
+							roles.push(checkRoles[j+1]);
+							continue;
 						}
-					}
-
-					//RTROLES
-					if (currentMr >= 1000 && updatedMr < 1000 && mode === "rt") {
-						members.push(parsedData[i].name);
-						roles.push("RT Iron");
-						continue;
-					}
-
-					if (currentMr >= 2500 && updatedMr < 2500 && mode === "rt") {
-						members.push(parsedData[i].name);
-						roles.push("RT Bronze");
-						continue;
-					}
-
-					if (currentMr < 1000 && updatedMr >= 1000 && mode === "rt") {
-						members.push(parsedData[i].name);
-						roles.push("RT Bronze");
-						continue;
-					}
-
-					if (currentMr >= 4000 && updatedMr < 4000 && mode === "rt") {
-						members.push(parsedData[i].name);
-						roles.push("RT Silver");
-						continue;
-					}
-
-					if (currentMr < 2500 && updatedMr >= 2500 && mode === "rt") {
-						members.push(parsedData[i].name);
-						roles.push("RT Silver");
-						continue;
-					}
-
-					if (currentMr >= 5500 && updatedMr < 5500 && mode === "rt") {
-						members.push(parsedData[i].name);
-						roles.push("RT Gold");
-						continue;
-					}
-
-					if (currentMr < 4000 && updatedMr >= 4000 && mode === "rt") {
-						members.push(parsedData[i].name);
-						roles.push("RT Gold");
-						continue;
-					}
-
-					if (currentMr >= 7000 && updatedMr < 7000 && mode === "rt") {
-						members.push(parsedData[i].name);
-						roles.push("RT Platinum");
-						continue;
-					}
-
-					if (currentMr < 5500 && updatedMr >= 5500 && mode === "rt") {
-						members.push(parsedData[i].name);
-						roles.push("RT Platinum");
-						continue;
-					}
-
-					if (currentMr >= 8500 && updatedMr < 8500 && mode === "rt") {
-						members.push(parsedData[i].name);
-						roles.push("RT Emerald");
-						continue;
-					}
-
-					if (currentMr < 7000 && updatedMr >= 7000 && mode === "rt") {
-						members.push(parsedData[i].name);
-						roles.push("RT Emerald");
-						continue;
-					}
-
-					if (currentMr >= 10000 && updatedMr < 10000 && mode === "rt") {
-						members.push(parsedData[i].name);
-						roles.push("RT Diamond");
-						continue;
-					}
-
-					if (currentMr < 8500 && updatedMr >= 8500 && mode === "rt") {
-						members.push(parsedData[i].name);
-						roles.push("RT Diamond");
-						continue;
-					}
-
-					if (currentMr >= 11000 && updatedMr < 11000 && mode === "rt") {
-						members.push(parsedData[i].name);
-						roles.push("RT Master");
-						continue;
-					}
-
-					if (currentMr < 10000 && updatedMr >= 10000 && mode === "rt") {
-						members.push(parsedData[i].name);
-						roles.push("RT Master");
-						continue;
-					}
-
-					if (currentMr < 11000 && updatedMr >= 11000 && mode === "rt") {
-						members.push(parsedData[i].name);
-						roles.push("RT Grandmaster");
-						continue;
-					}
-
-
-
-
-
-
-
-
-
-
-
-
-
-					//CTROLES
-					if (currentMr >= 1000 && updatedMr < 1000 && mode === "ct") {
-						members.push(parsedData[i].name);
-						roles.push("CT Iron");
-						continue;
-					}
-
-					if (currentMr >= 2250 && updatedMr < 2250 && mode === "ct") {
-						members.push(parsedData[i].name);
-						roles.push("CT Bronze");
-						continue;
-					}
-
-					if (currentMr < 1000 && updatedMr >= 1000 && mode === "ct") {
-						members.push(parsedData[i].name);
-						roles.push("CT Bronze");
-						continue;
-					}
-
-					if (currentMr >= 3500 && updatedMr < 3500 && mode === "ct") {
-						members.push(parsedData[i].name);
-						roles.push("CT Silver");
-						continue;
-					}
-
-					if (currentMr < 2250 && updatedMr >= 2250 && mode === "ct") {
-						members.push(parsedData[i].name);
-						roles.push("CT Silver");
-						continue;
-					}
-
-					if (currentMr >= 4500 && updatedMr < 4500 && mode === "ct") {
-						members.push(parsedData[i].name);
-						roles.push("CT Gold");
-						continue;
-					}
-
-					if (currentMr < 3500 && updatedMr >= 3500 && mode === "ct") {
-						members.push(parsedData[i].name);
-						roles.push("CT Gold");
-						continue;
-					}
-
-					if (currentMr >= 5500 && updatedMr < 5500 && mode === "ct") {
-						members.push(parsedData[i].name);
-						roles.push("CT Platinum");
-						continue;
-					}
-
-					if (currentMr < 4500 && updatedMr >= 4500 && mode === "ct") {
-						members.push(parsedData[i].name);
-						roles.push("CT Platinum");
-						continue;
-					}
-
-					if (currentMr >= 7000 && updatedMr < 7000 && mode === "ct") {
-						members.push(parsedData[i].name);
-						roles.push("CT Emerald");
-						continue;
-					}
-
-					if (currentMr < 5500 && updatedMr >= 5500 && mode === "ct") {
-						members.push(parsedData[i].name);
-						roles.push("CT Emerald");
-						continue;
-					}
-
-					if (currentMr >= 8500 && updatedMr < 8500 && mode === "ct") {
-						members.push(parsedData[i].name);
-						roles.push("CT Diamond");
-						continue;
-					}
-
-					if (currentMr < 7000 && updatedMr >= 7000 && mode === "ct") {
-						members.push(parsedData[i].name);
-						roles.push("CT Diamond");
-						continue;
-					}
-
-					if (currentMr >= 10000 && updatedMr < 10000 && mode === "ct") {
-						members.push(parsedData[i].name);
-						roles.push("CT Master");
-						continue;
-					}
-
-					if (currentMr < 8500 && updatedMr >= 8500 && mode === "ct") {
-						members.push(parsedData[i].name);
-						roles.push("CT Master");
-						continue;
-					}
-
-					if (currentMr < 10000 && updatedMr >= 10000 && mode === "ct") {
-						members.push(parsedData[i].name);
-						roles.push("CT Grandmaster");
-						continue;
 					}
 
 					// OLD METHOD
@@ -450,14 +200,15 @@ const removeDuplicates = (array) => {
 
 const doTop50Stuff = async (msg_obj, mode) => {
 	try {
-		let pageContent = await downloadPage(`https://mariokartboards.com/lounge/json/player.php?type=${mode}&limit=50&compress`);
+		let pageContent = await downloadPage(`https://mariokartboards.com/lounge/json/player.php?type=${mode}&limit=100&compress`); // extra for rob rule
 		pageContent = JSON.parse(pageContent);
 		let playerswithTop50 = [];
 		let playerswithTop50Col = msg_obj.guild.members.cache.filter(member => member.roles.cache.some(role => role.id == (mode == 'rt' ? '800958350446690304' : '800958359569694741')));
 		if (playerswithTop50Col != undefined)
 			playerswithTop50Col.each(member => playerswithTop50.push(member.id));
-		for (i = 0; i < pageContent.length; i++) {
-			let currentPlayerCollection = msg_obj.guild.members.cache.filter(member => tran_str(member.displayName) == tran_str(pageContent[i].name) && !member.roles.cache.some(role => role.name == "Unverified") && member.roles.cache.some(role => (mode == 'rt' ? rtRoles.includes(role.name) : ctRoles.includes(role.name))));
+		for (let i = 0, counter = 0; i < pageContent.length; i++) {
+			counter++;
+			let currentPlayerCollection = await msg_obj.guild.members.cache.filter(member => tran_str(member.displayName) == tran_str(pageContent[i].name) && !member.roles.cache.some(role => role.name == "Unverified") && member.roles.cache.some(role => (mode == 'rt' ? rtRoles.includes(role.name) : ctRoles.includes(role.name))));
 			let somePlayerArr = [], currentPlayer;
 			currentPlayerCollection.each(member => somePlayerArr.push(member.id));
 			if (somePlayerArr.length > 1) {
@@ -468,24 +219,39 @@ const doTop50Stuff = async (msg_obj, mode) => {
 				msg_obj.channel.send(somestr + " have the same display name. <@" + somePlayerArr[0] + "> is being considered for the role");
 
 			}
+			if (somePlayerArr.length == 0) {
+				msg_obj.channel.send("Unable to find server member with the name " + pageContent[i].name + ", who should have " + mode.toUpperCase() + " Top 50");
+				continue;
+			}
 			currentPlayer = msg_obj.guild.member(somePlayerArr[0]);
 			if (currentPlayer != undefined) {
+				let currentProfile = await downloadPage(`https://mariokartboards.com/lounge/json/player.php?type=${mode}&name=${pageContent[i].name}`);
+				currentProfile = JSON.parse(currentProfile);
+				let currentDate = new Date();
+				let compareDate = new Date(currentProfile.update_date);
+				if (currentDate - compareDate > 86400*1000*7) { // 1 week
+					counter--;
+					await currentPlayer.roles.remove(mode == 'rt' ? '800958350446690304' : '800958359569694741');
+					await msg_obj.channel.send(`${currentPlayer.user.tag} has been demoted from ${mode.toUpperCase()} <:top:795155129375522876> due to inactivity`);
+					continue;
+				}
 				if (!currentPlayer.roles.cache.some(role => role.name == (mode == 'rt' ? '800958350446690304' : '800958359569694741'))) {
 					await currentPlayer.roles.add(mode == 'rt' ? '800958350446690304' : '800958359569694741');
-					await msg_obj.channel.send(`<@${currentPlayer.id}> has been promoted to ${mode.toUpperCase()} <:top:795155129375522876>`);
+					await msg_obj.channel.send(`${currentPlayer.user.tag} has been promoted to ${mode.toUpperCase()} <:top:795155129375522876>`);
 				} else {
-					await msg_obj.channel.send(`<@${currentPlayer.id}> has maintained ${mode.toUpperCase()} <:top:795155129375522876>`);
+					await msg_obj.channel.send(`${currentPlayer.user.tag} has maintained ${mode.toUpperCase()} <:top:795155129375522876>`);
 				}
 				let lolIndex = playerswithTop50.indexOf(currentPlayer.id);
 				if (lolIndex != undefined)
 					playerswithTop50.splice(lolIndex, 1);
 			}
+			if (counter >= 50) break;
 		}
 		for (i = 0; i < playerswithTop50.length; i++) {
 			let currentPlayer = msg_obj.guild.member(playerswithTop50[i]);
 			if (currentPlayer != undefined) {
 				await currentPlayer.roles.remove(mode == 'rt' ? '800958350446690304' : '800958359569694741');
-				msg_obj.channel.send(`<@${currentPlayer.id}> has been demoted from ${mode.toUpperCase()} <:top:795155129375522876>`);
+				msg_obj.channel.send(`${currentPlayer.user.tag} has been demoted from ${mode.toUpperCase()} <:top:795155129375522876>`);
 			}
 		}
 	} catch(error) {
