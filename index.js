@@ -202,15 +202,13 @@ const doTop50Stuff = async (msg_obj, mode) => {
 	try {
 		let ldbPage = await downloadPage(`https://mariokartboards.com/lounge/json/leaderboard.php?type=${mode}`);
 		ldbPage = JSON.parse(ldbPage);
-		let pageContent = await downloadPage(`https://mariokartboards.com/lounge/json/player.php?type=${mode}&limit=300&compress`); // extra for rob rule
-		pageContent = JSON.parse(pageContent);
 		let playerswithTop50 = [];
 		let playerswithTop50Col = msg_obj.guild.members.cache.filter(member => member.roles.cache.some(role => role.id == (mode == 'rt' ? '800958350446690304' : '800958359569694741')));
 		if (playerswithTop50Col != undefined)
 			playerswithTop50Col.each(member => playerswithTop50.push(member.id));
-		for (let i = 0, counter = 0; i < pageContent.length; i++) {
+		for (let i = 0, counter = 0; i < 300; i++) {
 			counter++;
-			let currentPlayerCollection = await msg_obj.guild.members.cache.filter(member => tran_str(member.displayName) == tran_str(pageContent[i].name) && !member.roles.cache.some(role => role.name == "Unverified") && member.roles.cache.some(role => (mode == 'rt' ? rtRoles.includes(role.name) : ctRoles.includes(role.name))));
+			let currentPlayerCollection = await msg_obj.guild.members.cache.filter(member => tran_str(member.displayName) == tran_str(ldbPage[i].name) && !member.roles.cache.some(role => role.name == "Unverified") && member.roles.cache.some(role => (mode == 'rt' ? rtRoles.includes(role.name) : ctRoles.includes(role.name))));
 			let somePlayerArr = [], currentPlayer;
 			currentPlayerCollection.each(member => somePlayerArr.push(member.id));
 			if (somePlayerArr.length > 1) {
@@ -222,7 +220,7 @@ const doTop50Stuff = async (msg_obj, mode) => {
 
 			}
 			if (somePlayerArr.length == 0) {
-				msg_obj.channel.send("Unable to find server member with the name " + pageContent[i].name + ", who should have " + mode.toUpperCase() + " Top 50");
+				msg_obj.channel.send("Unable to find server member with the name " + ldbPage[i].name + ", who should have " + mode.toUpperCase() + " Top 50");
 				continue;
 			}
 			currentPlayer = msg_obj.guild.member(somePlayerArr[0]);
