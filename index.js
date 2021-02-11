@@ -10,6 +10,11 @@ config({
 	path: __dirname + "/.env"
 })
 
+// For placements
+String.prototype.capitalize = function() {
+	return this.charAt(0).toUpperCase() + this.splice(1);
+}
+
 
 const rtRoles = ["RT Iron", "RT Bronze", "RT Silver", "RT Gold", "RT Platinum", "RT Emerald", "RT Diamond", "RT Master", "RT Grandmaster"];
 const ctRoles = ["CT Iron", "CT Bronze", "CT Silver", "CT Gold", "CT Platinum", "CT Emerald", "CT Diamond", "CT Master", "CT Grandmaster"];
@@ -64,7 +69,7 @@ const getRequest = async (mode, warid, msg_obj) => {
 	try {
 		const checkRoles = mode == 'rt' ? rtRoles : ctRoles;
 		let top50names = [];
-		let top50html = await downloadPage(`https://mariokartboards.com/lounge/json/player.php?type=${mode}&limit=350&compress`);
+		let top50html = await downloadPage(`https://mariokartboards.com/lounge/json/player.php?type=${mode}&limit=150&compress`);
 		let top50json = JSON.parse(top50html);
 		let top50OnPage = [];
 		let currentDate = new Date();
@@ -208,7 +213,7 @@ const removeDuplicates = (array) => {
 
 const doTop50Stuff = async (msg_obj, mode) => {
 	try {
-		let ldbPage = await downloadPage(`https://mariokartboards.com/lounge/json/player.php?type=${mode}&limit=350&compress`);
+		let ldbPage = await downloadPage(`https://mariokartboards.com/lounge/json/player.php?type=${mode}&limit=150&compress`);
 		ldbPage = JSON.parse(ldbPage);
 		let playerswithTop50 = [];
 		let playerswithTop50Col = msg_obj.guild.members.cache.filter(member => member.roles.cache.some(role => role.id == (mode == 'rt' ? '800958350446690304' : '800958359569694741')));
@@ -271,6 +276,15 @@ client.on('message', async msg => {
 		//<:top:801111279157641246>
 		//msg.channel.send(emoji('top', msg));
 		finalTop50Str = "";
+		msg.content = msg.content.toLowerCase();
+		// let hahaha = await downloadPage("https://mariokartboards.com/lounge/json/player.php?type=rt&name=Fox,kenchan,Killua,neuro,Shaun,Jeff,Kaspie,barney,meraki,pachu,Quinn,Leops,Mikey,jun,Sane,rusoX,Az,EmilP,Batcake,Taz,Sora,Dane,lo,Solar,Goober");
+		// hahaha = JSON.parse(hahaha);
+		// console.log(hahaha);
+		const commandList = ["!rt", "!ct", "!dp", "!top50", "!place"];
+		let go_on = false;
+		for (command in commandList) if (msg.content.startsWith(commandList[command])) go_on = true;
+		if (!go_on) return;
+
 		var combinedForDP = [];
 		for (i = 0; i < rtRoles.length; i++) {
 			combinedForDP.push(rtRoles[i]);
@@ -279,11 +293,6 @@ client.on('message', async msg => {
 			combinedForDP.push(ctRoles[i]);
 		}
 
-		msg.content = msg.content.toLowerCase();
-		// let hahaha = await downloadPage("https://mariokartboards.com/lounge/json/player.php?type=rt&name=Fox,kenchan,Killua,neuro,Shaun,Jeff,Kaspie,barney,meraki,pachu,Quinn,Leops,Mikey,jun,Sane,rusoX,Az,EmilP,Batcake,Taz,Sora,Dane,lo,Solar,Goober");
-		// hahaha = JSON.parse(hahaha);
-		// console.log(hahaha);
-		if (!msg.content.startsWith("!rt") && !msg.content.startsWith("!ct") && !msg.content.startsWith("!dp") && !msg.content.startsWith("!top50")) return;
 		const rolesThatCanUpdate = ['387347888935534593', '792805904047276032', '399382503825211393', '399384750923579392', '521149807994208295', '792891432301625364', '521154917675827221', '393600567781621761', '520808645252874240'];
 		// 504795505583456257
 		let canUpdate = false;
@@ -319,9 +328,29 @@ client.on('message', async msg => {
 			doTop50Stuff(msg, 'ct');
 			return;
 		}
-		//START
 		const commandParams = msg.content.split(/\s+/);
 		msg.delete();
+
+		if (commandParams[0] == "!place") {
+			let currentPlayer = await msg.guild.members.cache.find(member => member.roles.cache.some(role => role.id == (commandParams[2].startsWith("rt") ? '723753340063842345' : '723753312331104317')) && tran_str(member.displayName) == tran_str(commandParams[1]));
+			if (currentPlayer == undefined) {
+				send_dm(msg, "Unable to find server member with a placement role with the name " + commandParams[1]);
+				return;
+			}
+			let roleName = "";
+			for (let i = 2;;i++) {
+				if (commandParams[i] != undefined) roleName += commandParams[i];
+				else break;
+			}
+			let serverRole = await msg.guild.roles.cache.find(role => tran_str(role.name) == tran_str(roleName));
+			let placeEmoji = emoji(roleName.replace("rt", "").capitalize());
+
+			currentPlayer.roles.remove(commandParams[2].startsWith("rt") ? '723753340063842345' : '723753312331104317');
+			currentPlayer.roles.add(serverRole);
+			return msg.channel.send(`<@${currentPlayer.id}> ${placeEmoji} Placement`);
+		}
+
+		// START
 
 		const modes = commandParams[0].split("!");
 		const globalMode = modes[1];
