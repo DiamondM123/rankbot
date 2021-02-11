@@ -12,7 +12,7 @@ config({
 
 // For placements
 String.prototype.capitalize = function() {
-	return this.charAt(0).toUpperCase() + this.splice(1);
+	return this.charAt(0).toUpperCase() + this.slice(1);
 }
 
 
@@ -343,7 +343,7 @@ client.on('message', async msg => {
 				else break;
 			}
 			let serverRole = await msg.guild.roles.cache.find(role => tran_str(role.name) == tran_str(roleName));
-			let placeEmoji = emoji(roleName.replace("rt", "").capitalize());
+			let placeEmoji = emoji(roleName.replace("rt", "").capitalize(), msg);
 
 			currentPlayer.roles.remove(commandParams[2].startsWith("rt") ? '723753340063842345' : '723753312331104317');
 			currentPlayer.roles.add(serverRole);
