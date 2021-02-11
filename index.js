@@ -74,12 +74,11 @@ const getRequest = async (mode, warid, msg_obj) => {
 		let top50OnPage = [];
 		let currentDate = new Date();
 		for (let i = 0, counter = 0; i < top50json.length; i++) {
-			counter++;
 			let compareDate = new Date(top50json[i].last_event_date);
 			if (currentDate - compareDate > 86400*1000*7) { // 1 week
-				counter--;
 				continue;
 			}
+			counter++;
 			top50OnPage.push(tran_str(top50json[i].name));
 			if (counter >= 50) break;
 		}
