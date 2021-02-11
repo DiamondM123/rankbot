@@ -15,6 +15,7 @@ String.prototype.capitalize = function() {
 	return this.charAt(0).toUpperCase() + this.slice(1);
 }
 
+const activityForTop50 = 86400*1000*7; // in milliseconds
 
 const rtRoles = ["RT Iron", "RT Bronze", "RT Silver", "RT Gold", "RT Platinum", "RT Emerald", "RT Diamond", "RT Master", "RT Grandmaster"];
 const ctRoles = ["CT Iron", "CT Bronze", "CT Silver", "CT Gold", "CT Platinum", "CT Emerald", "CT Diamond", "CT Master", "CT Grandmaster"];
@@ -75,7 +76,7 @@ const getRequest = async (mode, warid, msg_obj) => {
 		let currentDate = new Date();
 		for (let i = 0, counter = 0; i < top50json.length; i++) {
 			let compareDate = new Date(top50json[i].last_event_date);
-			if (currentDate - compareDate > 86400*1000*7) { // 1 week
+			if (currentDate - compareDate > activityForTop50) {
 				continue;
 			}
 			counter++;
@@ -239,7 +240,7 @@ const doTop50Stuff = async (msg_obj, mode) => {
 			if (currentPlayer != undefined) {
 				let currentDate = new Date();
 				let compareDate = new Date(ldbPage[i].last_event_date);
-				if (currentDate - compareDate > 86400*1000*7) { // 1 week
+				if (currentDate - compareDate > activityForTop50) {
 					counter--;
 					await currentPlayer.roles.remove(mode == 'rt' ? '800958350446690304' : '800958359569694741');
 					await msg_obj.channel.send(`${currentPlayer.user.tag} has been demoted from ${mode.toUpperCase()} <:top:795155129375522876> due to inactivity`);
