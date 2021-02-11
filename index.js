@@ -212,13 +212,13 @@ const removeDuplicates = (array) => {
 
 const doTop50Stuff = async (msg_obj, mode) => {
 	try {
-		let ldbPage = await downloadPage(`https://mariokartboards.com/lounge/json/player.php?type=${mode}&limit=150&compress`);
+		let ldbPage = await downloadPage(`https://mariokartboards.com/lounge/json/leaderboard.php?type=${mode}`);
 		ldbPage = JSON.parse(ldbPage);
 		let playerswithTop50 = [];
 		let playerswithTop50Col = msg_obj.guild.members.cache.filter(member => member.roles.cache.some(role => role.id == (mode == 'rt' ? '800958350446690304' : '800958359569694741')));
 		if (playerswithTop50Col != undefined)
 			playerswithTop50Col.each(member => playerswithTop50.push(member.id));
-		for (let i = 0, counter = 0; i < 300; i++) {
+		for (let i = 0, counter = 0; i < ldbPage.length; i++) {
 			counter++;
 			let currentPlayerCollection = await msg_obj.guild.members.cache.filter(member => tran_str(member.displayName) == tran_str(ldbPage[i].name) && !member.roles.cache.some(role => role.name == "Unverified") && member.roles.cache.some(role => (mode == 'rt' ? rtRoles.includes(role.name) : ctRoles.includes(role.name))));
 			let somePlayerArr = [], currentPlayer;
