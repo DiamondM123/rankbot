@@ -64,11 +64,19 @@ const getRequest = async (mode, warid, msg_obj) => {
 	try {
 		const checkRoles = mode == 'rt' ? rtRoles : ctRoles;
 		let top50names = [];
-		let top50html = await downloadPage(`https://mariokartboards.com/lounge/json/player.php?type=${mode}&limit=50&compress`);
+		let top50html = await downloadPage(`https://mariokartboards.com/lounge/json/player.php?type=${mode}&limit=350&compress`);
 		let top50json = JSON.parse(top50html);
 		let top50OnPage = [];
-		for (let i = 0; i < top50json.length; i++) {
+		let currentDate = new Date();
+		for (let i = 0, counter = 0; i < top50json.length; i++) {
+			counter++;
+			let compareDate = new Date(top50json[i].last_event_date);
+			if (currentDate - compareDate > 86400*1000*7) { // 1 week
+				counter--;
+				continue;
+			}
 			top50OnPage.push(tran_str(top50json[i].name));
+			if (counter >= 50) break;
 		}
 		let currentPlayerCollection = await msg_obj.guild.members.cache.filter(member => member.roles.cache.some(role => role.id == (mode == 'rt' ? '800958350446690304' : '800958359569694741')));
 		await currentPlayerCollection.each(member => top50names.push(tran_str(member.displayName)));
@@ -200,7 +208,7 @@ const removeDuplicates = (array) => {
 
 const doTop50Stuff = async (msg_obj, mode) => {
 	try {
-		let ldbPage = await downloadPage(`https://mariokartboards.com/lounge/json/leaderboard.php?type=${mode}`);
+		let ldbPage = await downloadPage(`https://mariokartboards.com/lounge/json/player.php?type=${mode}&limit=350&compress`);
 		ldbPage = JSON.parse(ldbPage);
 		let playerswithTop50 = [];
 		let playerswithTop50Col = msg_obj.guild.members.cache.filter(member => member.roles.cache.some(role => role.id == (mode == 'rt' ? '800958350446690304' : '800958359569694741')));
@@ -226,7 +234,7 @@ const doTop50Stuff = async (msg_obj, mode) => {
 			currentPlayer = msg_obj.guild.member(somePlayerArr[0]);
 			if (currentPlayer != undefined) {
 				let currentDate = new Date();
-				let compareDate = new Date(ldbPage[i].update_date);
+				let compareDate = new Date(ldbPage[i].last_event_date);
 				if (currentDate - compareDate > 86400*1000*7) { // 1 week
 					counter--;
 					await currentPlayer.roles.remove(mode == 'rt' ? '800958350446690304' : '800958359569694741');
