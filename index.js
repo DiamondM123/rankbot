@@ -84,6 +84,7 @@ const getRequest = async (mode, warid, msg_obj) => {
 		let top50json = JSON.parse(top50html);
 		let top50OnPage = [];
 		let currentDate = await getCurrentLoungeDate();
+		if (!currentDate) currentDate = new Date();
 		for (let i = 0, counter = 0; i < top50json.length; i++) {
 			let compareDate = new Date(top50json[i].last_event_date);
 			if (currentDate - compareDate > activityForTop50) {
@@ -229,6 +230,8 @@ const doTop50Stuff = async (msg_obj, mode) => {
 		let playerswithTop50Col = msg_obj.guild.members.cache.filter(member => member.roles.cache.some(role => role.id == (mode == 'rt' ? '800958350446690304' : '800958359569694741')));
 		if (playerswithTop50Col != undefined)
 			playerswithTop50Col.each(member => playerswithTop50.push(member.id));
+		let currentDate = await getCurrentLoungeDate();
+		if (!currentDate) currentDate = new Date();
 		for (let i = 0, counter = 0; i < ldbPage.length; i++) {
 			counter++;
 			let currentPlayerCollection = await msg_obj.guild.members.cache.filter(member => tran_str(member.displayName) == tran_str(ldbPage[i].name) && !member.roles.cache.some(role => role.name == "Unverified") && member.roles.cache.some(role => (mode == 'rt' ? rtRoles.includes(role.name) : ctRoles.includes(role.name))));
@@ -248,7 +251,6 @@ const doTop50Stuff = async (msg_obj, mode) => {
 			}
 			currentPlayer = msg_obj.guild.member(somePlayerArr[0]);
 			if (currentPlayer != undefined) {
-				let currentDate = await getCurrentLoungeDate();
 				let compareDate = new Date(ldbPage[i].last_event_date);
 				if (currentDate - compareDate > activityForTop50) {
 					counter--;
