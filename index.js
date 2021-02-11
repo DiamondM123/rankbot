@@ -65,6 +65,16 @@ const tran_str = (inp) => {
 	return inp.replace(/\s/g, '').latinise().toLowerCase();
 }
 
+async function getCurrentLoungeDate() {
+	try {
+		let currentDate = await downloadPage("https://mariokartboards.com/lounge/json/serverstats.php");
+		currentDate = JSON.parse(currentDate);
+		return new Date(currentDate.server_timestamp);
+	} catch(error) {
+		console.log(error);
+	}
+}
+
 const getRequest = async (mode, warid, msg_obj) => {
 	var roles = [], members = [];
 	try {
@@ -73,7 +83,7 @@ const getRequest = async (mode, warid, msg_obj) => {
 		let top50html = await downloadPage(`https://mariokartboards.com/lounge/json/player.php?type=${mode}&limit=150&compress`);
 		let top50json = JSON.parse(top50html);
 		let top50OnPage = [];
-		let currentDate = new Date();
+		let currentDate = await getCurrentLoungeDate();
 		for (let i = 0, counter = 0; i < top50json.length; i++) {
 			let compareDate = new Date(top50json[i].last_event_date);
 			if (currentDate - compareDate > activityForTop50) {
@@ -238,7 +248,7 @@ const doTop50Stuff = async (msg_obj, mode) => {
 			}
 			currentPlayer = msg_obj.guild.member(somePlayerArr[0]);
 			if (currentPlayer != undefined) {
-				let currentDate = new Date();
+				let currentDate = await getCurrentLoungeDate();
 				let compareDate = new Date(ldbPage[i].last_event_date);
 				if (currentDate - compareDate > activityForTop50) {
 					counter--;
