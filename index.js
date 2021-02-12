@@ -356,6 +356,7 @@ client.on('message', async msg => {
 				else break;
 			}
 			let serverRole = await msg.guild.roles.cache.find(role => tran_str(role.name) == tran_str(roleName));
+			if (serverRole == undefined) return send_dm(msg, "Unable to find server role with the name " + roleName);
 			let placeEmoji = emoji(roleName.replace("rt", "").capitalize(), msg);
 
 			currentPlayer.roles.remove(commandParams[2].startsWith("rt") ? '723753340063842345' : '723753312331104317');
