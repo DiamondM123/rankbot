@@ -344,6 +344,7 @@ client.on('message', async msg => {
 		msg.delete();
 
 		if (commandParams[0] == "!place") {
+			if (commandParams.length < 3) return msg.reply("Missing some Arguments");
 			let currentPlayer = await msg.guild.members.cache.find(member => member.roles.cache.some(role => role.id == (commandParams[2].startsWith("rt") ? '723753340063842345' : '723753312331104317')) && tran_str(member.displayName) == tran_str(commandParams[1]));
 			if (currentPlayer == undefined) {
 				send_dm(msg, "Unable to find server member with a placement role with the name " + commandParams[1]);
