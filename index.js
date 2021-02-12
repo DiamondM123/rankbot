@@ -422,12 +422,12 @@ client.on('message', async msg => {
 						continue;
 					}
 					for (j = 0; j < modeRoles.length; j++) {
-						currentPlayer = msg.guild.members.cache.find(member => tran_str(member.displayName) === tran_str(result[i]) && member.roles.cache.some(role => role.name === modeRoles[j]) && !member.roles.cache.some(role => role.name === "Unverified"));
+						currentPlayer = await msg.guild.members.cache.find(member => tran_str(member.displayName) === tran_str(result[i]) && member.roles.cache.some(role => role.name === modeRoles[j]) && !member.roles.cache.some(role => role.name === "Unverified"));
 						if (currentPlayer !== undefined)
 							break;
 					}
 					for (j = 0; j < modeRoles.length; j++) {
-						currentPlayerCollection = msg.guild.members.cache.filter(member => tran_str(member.displayName) === tran_str(result[i]) && member.roles.cache.some(role => role.name === modeRoles[j]) && !member.roles.cache.some(role => role.name === "Unverified"));
+						currentPlayerCollection = await msg.guild.members.cache.filter(member => tran_str(member.displayName) === tran_str(result[i]) && member.roles.cache.some(role => role.name === modeRoles[j]) && !member.roles.cache.some(role => role.name === "Unverified"));
 						if (currentPlayerCollection !== undefined)
 							currentPlayerCollection.each(member => collectionNames.push(member.user.tag));
 					}
@@ -464,7 +464,7 @@ client.on('message', async msg => {
 				const players = resultarray.slice(resultarray.length/2, resultarray.length);
 				for (i = 0; i < players.length; i++) {
 					let hasSpecialRole = false;
-					let currentPlayer = msg.guild.members.cache.find(member => tran_str(member.displayName) === tran_str(players[i]));
+					let currentPlayer = await msg.guild.members.cache.find(member => tran_str(member.displayName) === tran_str(players[i]));
 					let currentPlayerCollection, collectionNames = [];
 					if (currentPlayer === undefined) {
 						send_dm(msg, "Unable to find server member with the name " + players[i]);
@@ -472,18 +472,18 @@ client.on('message', async msg => {
 					}
 					//...
 					for (j = 0; j < modeRoles.length; j++) {
-						currentPlayer = msg.guild.members.cache.find(member => tran_str(member.displayName) === tran_str(players[i]) && member.roles.cache.some(role => role.name === modeRoles[j]) && !member.roles.cache.some(role => role.name === "Unverified"));
+						currentPlayer = await msg.guild.members.cache.find(member => tran_str(member.displayName) === tran_str(players[i]) && member.roles.cache.some(role => role.name === modeRoles[j]) && !member.roles.cache.some(role => role.name === "Unverified"));
 						if (currentPlayer !== undefined)
 							break;
 					}
 					for (j = 0; j < modeRoles.length; j++) {
-						currentPlayerCollection = msg.guild.members.cache.filter(member => tran_str(member.displayName) === tran_str(players[i]) && member.roles.cache.some(role => role.name == modeRoles[j]) && !member.roles.cache.some(role => role.name === "Unverified"));
+						currentPlayerCollection = await msg.guild.members.cache.filter(member => tran_str(member.displayName) === tran_str(players[i]) && member.roles.cache.some(role => role.name == modeRoles[j]) && !member.roles.cache.some(role => role.name === "Unverified"));
 						if (currentPlayerCollection !== undefined)
 							currentPlayerCollection.each(member => collectionNames.push(member.user.tag));
 					}
 					if (currentPlayer === undefined) {
 						for (j = 0; j < specialRoles.length; j++) {
-							currentPlayer = msg.guild.members.cache.find(member => tran_str(member.displayName) === tran_str(players[i]) && member.roles.cache.some(role => role.name == specialRoles[j]) && !member.roles.cache.some(role => role.name === "Unverified"));
+							currentPlayer = await msg.guild.members.cache.find(member => tran_str(member.displayName) === tran_str(players[i]) && member.roles.cache.some(role => role.name == specialRoles[j]) && !member.roles.cache.some(role => role.name === "Unverified"));
 							if (currentPlayer !== undefined) {
 								hasSpecialRole = true;
 								break;
