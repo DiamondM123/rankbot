@@ -106,7 +106,7 @@ const getRequest = async (mode, warid, msg_obj) => {
 		// add role only to those who don't have it already
 		for (let i = 0; i < top50OnPage.length; i++) {
 			if (!top50names.includes(top50OnPage[i])) {
-				let currentPlayer = await msg_obj.guild.members.cache.find(member => tran_str(member.displayName) == top50names[i] && member.roles.cache.some(role => checkRoles.includes(role.name)) && !member.roles.cache.some(role => role.name === "Unverified"));
+				let currentPlayer = await msg_obj.guild.members.cache.find(member => tran_str(member.displayName) == top50OnPage[i] && member.roles.cache.some(role => checkRoles.includes(role.name)) && !member.roles.cache.some(role => role.name === "Unverified"));
 				if (currentPlayer != undefined) {
 					await currentPlayer.roles.add(mode == "rt" ? '800958350446690304' : '800958359569694741');
 					finalTop50Str += `\n<@${currentPlayer.id}> <:top:795155129375522876>`;
