@@ -109,7 +109,7 @@ const getRequest = async (mode, warid, msg_obj) => {
 				let currentPlayer = await msg_obj.guild.members.cache.find(member => tran_str(member.displayName) == top50names[i] && member.roles.cache.some(role => checkRoles.includes(role.name)) && !member.roles.cache.some(role => role.name === "Unverified"));
 				if (currentPlayer != undefined) {
 					await currentPlayer.roles.add(mode == "rt" ? '800958350446690304' : '800958359569694741');
-					finalTop50Str += `\n<@${currentPlayer.id} <:top:795155129375522876>`;
+					finalTop50Str += `\n<@${currentPlayer.id}> <:top:795155129375522876>`;
 				}
 			}
 		}
