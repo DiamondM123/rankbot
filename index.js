@@ -53,16 +53,16 @@ const determineLatestEvent = async (mode) => {
 	}
 }
 
-const emoji = (inp, msg_o) => {
-	if (inp === 'ron') inp = 'Iron';
-	let theEmoji = msg_o.guild.emojis.cache.find(emoji => emoji.name === inp);
-	//console.log("<:" + inp + ":" + theEmoji.id.toString() + ">");
-	return ("<:" + inp + ":" + theEmoji.id.toString() + ">");
-}
-
 const tran_str = (inp) => {
 	if (inp === undefined) return undefined;
 	return inp.replace(/\s/g, '').latinise().toLowerCase();
+}
+
+const emoji = (inp, msg_o) => {
+	if (inp === 'ron') inp = 'Iron';
+	let theEmoji = msg_o.guild.emojis.cache.find(emoji => emoji.name) == inp);
+	//console.log("<:" + inp + ":" + theEmoji.id.toString() + ">");
+	return ("<:" + inp + ":" + theEmoji.id.toString() + ">");
 }
 
 async function getCurrentLoungeDate() {
@@ -357,7 +357,7 @@ client.on('message', async msg => {
 			}
 			let serverRole = await msg.guild.roles.cache.find(role => tran_str(role.name) == tran_str(roleName));
 			if (serverRole == undefined) return send_dm(msg, "Unable to find server role with the name " + roleName);
-			let placeEmoji = emoji(roleName.replace("rt", "").replace("ct", "").capitalize(), msg);
+			let placeEmoji = emoji(roleName.substring(2).capitalize(), msg);
 
 			currentPlayer.roles.remove(commandParams[2].startsWith("rt") ? '723753340063842345' : '723753312331104317');
 			currentPlayer.roles.add(serverRole);
