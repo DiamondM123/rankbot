@@ -60,7 +60,7 @@ const tran_str = (inp) => {
 
 const emoji = (inp, msg_o) => {
 	if (inp === 'ron') inp = 'Iron';
-	let theEmoji = msg_o.guild.emojis.cache.find(emoji => emoji.name) == inp);
+	let theEmoji = msg_o.guild.emojis.cache.find(emoji => emoji.name == inp);
 	//console.log("<:" + inp + ":" + theEmoji.id.toString() + ">");
 	return ("<:" + inp + ":" + theEmoji.id.toString() + ">");
 }
