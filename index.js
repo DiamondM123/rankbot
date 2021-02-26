@@ -519,7 +519,7 @@ client.on('message', async msg => {
 		}
 		if (mentionPlayers !== '')
 			await msg.channel.send(mentionPlayers);
-		if (finalTop50Str != '') await msg.channel.send(finalTop50Str.substring(1));
+		//if (finalTop50Str != '') await msg.channel.send(finalTop50Str.substring(1));
 	} catch (error) {
 		console.error('ERROR:');
         console.error(error);
