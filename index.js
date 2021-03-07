@@ -294,7 +294,9 @@ client.on('message', async msg => {
 		// console.log(hahaha);
 		const commandList = ["!rt", "!ct", "!dp", "!top50", "!place"];
 		let go_on = false;
-		for (command in commandList) if (msg.content.startsWith(commandList[command])) go_on = true;
+		for (command in commandList) {
+			if (msg.content.toLowerCase().split(/\s+/)[0] == commandList[command]) go_on = true;
+		}
 		if (!go_on) return;
 
 		var combinedForDP = [];
