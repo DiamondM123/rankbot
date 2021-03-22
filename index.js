@@ -15,6 +15,8 @@ String.prototype.capitalize = function() {
 	return this.charAt(0).toUpperCase() + this.slice(1);
 }
 
+const enableTop50 = false;
+
 const activityForTop50 = 86400*1000*7; // in milliseconds
 
 const rtRoles = ["RT Iron", "RT Bronze", "RT Silver", "RT Gold", "RT Platinum", "RT Emerald", "RT Diamond", "RT Master", "RT Grandmaster"];
@@ -100,14 +102,14 @@ const getRequest = async (mode, warid, msg_obj) => {
 		for (let i = 0; i < top50names.length; i++) {
 			if (!top50OnPage.includes(top50names[i])) {
 				let currentPlayer = await msg_obj.guild.members.cache.find(member => tran_str(member.displayName) == top50names[i] && member.roles.cache.some(role => checkRoles.includes(role.name)) && !member.roles.cache.some(role => role.name === "Unverified"));
-				if (currentPlayer != undefined) await currentPlayer.roles.remove(mode == "rt" ? '800958350446690304' : '800958359569694741');
+				if (currentPlayer != undefined && enableTop50) await currentPlayer.roles.remove(mode == "rt" ? '800958350446690304' : '800958359569694741');
 			}
 		}
 		// add role only to those who don't have it already
 		for (let i = 0; i < top50OnPage.length; i++) {
 			if (!top50names.includes(top50OnPage[i])) {
 				let currentPlayer = await msg_obj.guild.members.cache.find(member => tran_str(member.displayName) == top50OnPage[i] && member.roles.cache.some(role => checkRoles.includes(role.name)) && !member.roles.cache.some(role => role.name === "Unverified"));
-				if (currentPlayer != undefined) {
+				if (currentPlayer != undefined && enableTop50) {
 					await currentPlayer.roles.add(mode == "rt" ? '800958350446690304' : '800958359569694741');
 					finalTop50Str += `\n<@${currentPlayer.id}> <:top:795155129375522876>`;
 				}
@@ -224,57 +226,59 @@ const removeDuplicates = (array) => {
 
 const doTop50Stuff = async (msg_obj, mode) => {
 	try {
-		let ldbPage = await downloadPage(`https://mariokartboards.com/lounge/json/leaderboard.php?type=${mode}`);
-		ldbPage = JSON.parse(ldbPage);
-		let playerswithTop50 = [];
-		let playerswithTop50Col = msg_obj.guild.members.cache.filter(member => member.roles.cache.some(role => role.id == (mode == 'rt' ? '800958350446690304' : '800958359569694741')));
-		if (playerswithTop50Col != undefined)
-			playerswithTop50Col.each(member => playerswithTop50.push(member.id));
-		let currentDate = await getCurrentLoungeDate();
-		if (!currentDate) currentDate = new Date();
-		for (let i = 0, counter = 0; i < ldbPage.length; i++) {
-			counter++;
-			let currentPlayerCollection = await msg_obj.guild.members.cache.filter(member => tran_str(member.displayName) == tran_str(ldbPage[i].name) && !member.roles.cache.some(role => role.name == "Unverified") && member.roles.cache.some(role => (mode == 'rt' ? rtRoles.includes(role.name) : ctRoles.includes(role.name))));
-			let somePlayerArr = [], currentPlayer;
-			currentPlayerCollection.each(member => somePlayerArr.push(member.id));
-			if (somePlayerArr.length > 1) {
-				let somestr = '';
-				for (j = 0; j < somePlayerArr.length; j++) {
-					somestr += (j != 0 ? " & " : "") + "<@" + somePlayerArr[j] + ">";
-				}
-				msg_obj.channel.send(somestr + " have the same display name. <@" + somePlayerArr[0] + "> is being considered for the role");
+		if (enableTop50) {
+			let ldbPage = await downloadPage(`https://mariokartboards.com/lounge/json/leaderboard.php?type=${mode}`);
+			ldbPage = JSON.parse(ldbPage);
+			let playerswithTop50 = [];
+			let playerswithTop50Col = msg_obj.guild.members.cache.filter(member => member.roles.cache.some(role => role.id == (mode == 'rt' ? '800958350446690304' : '800958359569694741')));
+			if (playerswithTop50Col != undefined)
+				playerswithTop50Col.each(member => playerswithTop50.push(member.id));
+			let currentDate = await getCurrentLoungeDate();
+			if (!currentDate) currentDate = new Date();
+			for (let i = 0, counter = 0; i < ldbPage.length; i++) {
+				counter++;
+				let currentPlayerCollection = await msg_obj.guild.members.cache.filter(member => tran_str(member.displayName) == tran_str(ldbPage[i].name) && !member.roles.cache.some(role => role.name == "Unverified") && member.roles.cache.some(role => (mode == 'rt' ? rtRoles.includes(role.name) : ctRoles.includes(role.name))));
+				let somePlayerArr = [], currentPlayer;
+				currentPlayerCollection.each(member => somePlayerArr.push(member.id));
+				if (somePlayerArr.length > 1) {
+					let somestr = '';
+					for (j = 0; j < somePlayerArr.length; j++) {
+						somestr += (j != 0 ? " & " : "") + "<@" + somePlayerArr[j] + ">";
+					}
+					msg_obj.channel.send(somestr + " have the same display name. <@" + somePlayerArr[0] + "> is being considered for the role");
 
-			}
-			if (somePlayerArr.length == 0) {
-				msg_obj.channel.send("Unable to find server member with the name " + ldbPage[i].name + ", who should have " + mode.toUpperCase() + " Top 50");
-				continue;
-			}
-			currentPlayer = msg_obj.guild.member(somePlayerArr[0]);
-			if (currentPlayer != undefined) {
-				let compareDate = new Date(ldbPage[i].last_event_date);
-				if (currentDate - compareDate > activityForTop50) {
-					counter--;
-					await currentPlayer.roles.remove(mode == 'rt' ? '800958350446690304' : '800958359569694741');
-					await msg_obj.channel.send(`${currentPlayer.user.tag} has been demoted from ${mode.toUpperCase()} <:top:795155129375522876> due to inactivity`);
+				}
+				if (somePlayerArr.length == 0) {
+					msg_obj.channel.send("Unable to find server member with the name " + ldbPage[i].name + ", who should have " + mode.toUpperCase() + " Top 50");
 					continue;
 				}
-				if (!currentPlayer.roles.cache.some(role => role.name == (mode == 'rt' ? '800958350446690304' : '800958359569694741'))) {
-					await currentPlayer.roles.add(mode == 'rt' ? '800958350446690304' : '800958359569694741');
-					await msg_obj.channel.send(`${currentPlayer.user.tag} has been promoted to ${mode.toUpperCase()} <:top:795155129375522876>`);
-				} else {
-					await msg_obj.channel.send(`${currentPlayer.user.tag} has maintained ${mode.toUpperCase()} <:top:795155129375522876>`);
+				currentPlayer = msg_obj.guild.member(somePlayerArr[0]);
+				if (currentPlayer != undefined) {
+					let compareDate = new Date(ldbPage[i].last_event_date);
+					if (currentDate - compareDate > activityForTop50) {
+						counter--;
+						await currentPlayer.roles.remove(mode == 'rt' ? '800958350446690304' : '800958359569694741');
+						await msg_obj.channel.send(`${currentPlayer.user.tag} has been demoted from ${mode.toUpperCase()} <:top:795155129375522876> due to inactivity`);
+						continue;
+					}
+					if (!currentPlayer.roles.cache.some(role => role.name == (mode == 'rt' ? '800958350446690304' : '800958359569694741'))) {
+						await currentPlayer.roles.add(mode == 'rt' ? '800958350446690304' : '800958359569694741');
+						await msg_obj.channel.send(`${currentPlayer.user.tag} has been promoted to ${mode.toUpperCase()} <:top:795155129375522876>`);
+					} else {
+						await msg_obj.channel.send(`${currentPlayer.user.tag} has maintained ${mode.toUpperCase()} <:top:795155129375522876>`);
+					}
+					let lolIndex = playerswithTop50.indexOf(currentPlayer.id);
+					if (lolIndex != undefined)
+						playerswithTop50.splice(lolIndex, 1);
 				}
-				let lolIndex = playerswithTop50.indexOf(currentPlayer.id);
-				if (lolIndex != undefined)
-					playerswithTop50.splice(lolIndex, 1);
+				if (counter >= 50) break;
 			}
-			if (counter >= 50) break;
-		}
-		for (i = 0; i < playerswithTop50.length; i++) {
-			let currentPlayer = msg_obj.guild.member(playerswithTop50[i]);
-			if (currentPlayer != undefined) {
-				await currentPlayer.roles.remove(mode == 'rt' ? '800958350446690304' : '800958359569694741');
-				msg_obj.channel.send(`${currentPlayer.user.tag} has been demoted from ${mode.toUpperCase()} <:top:795155129375522876>`);
+			for (i = 0; i < playerswithTop50.length; i++) {
+				let currentPlayer = msg_obj.guild.member(playerswithTop50[i]);
+				if (currentPlayer != undefined) {
+					await currentPlayer.roles.remove(mode == 'rt' ? '800958350446690304' : '800958359569694741');
+					msg_obj.channel.send(`${currentPlayer.user.tag} has been demoted from ${mode.toUpperCase()} <:top:795155129375522876>`);
+				}
 			}
 		}
 	} catch(error) {
