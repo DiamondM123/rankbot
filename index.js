@@ -19,10 +19,10 @@ const enableTop50 = false;
 
 const activityForTop50 = 86400*1000*7; // in milliseconds
 
-const rtRoles = ["RT Iron", "RT Bronze", "RT Silver", "RT Gold", "RT Platinum", "RT Emerald", "RT Diamond", "RT Master", "RT Grandmaster"];
+const rtRoles = ["RT Iron", "RT Bronze", "RT Silver", "RT Gold", "RT Ruby", "RT Platinum", "RT Emerald", "RT Diamond", "RT Master", "RT Grandmaster"];
 const ctRoles = ["CT Iron", "CT Bronze", "CT Silver", "CT Gold", "CT Platinum", "CT Emerald", "CT Diamond", "CT Master", "CT Grandmaster"];
 
-const rtRanges = [1000, 2500, 4000, 5500, 7000, 8500, 10000, 11000];
+const rtRanges = [1000, 2500, 4000, 4750, 5500, 7000, 8500, 10000, 11000];
 const ctRanges = [1000, 2250, 3500, 4500, 5500, 7000, 8500, 10000];
 
 var finalTop50Str = "";
