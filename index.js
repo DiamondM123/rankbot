@@ -353,7 +353,7 @@ client.on('message', async msg => {
 			if (commandParams.length < 3) return msg.reply("Missing some Arguments");
 			let currentPlayer = await msg.guild.members.cache.find(member => member.roles.cache.some(role => role.id == (commandParams[2].startsWith("rt") ? '723753340063842345' : '723753312331104317')) && tran_str(member.displayName) == tran_str(commandParams[1]));
 			if (currentPlayer == undefined) {
-				send_dm(msg, "Unable to find server member with a placement role with the name " + commandParams[1]);
+				msg.channel.send("Unable to find server member with a placement role with the name " + commandParams[1]);
 				return;
 			}
 			let roleName = "";
@@ -362,7 +362,7 @@ client.on('message', async msg => {
 				else break;
 			}
 			let serverRole = await msg.guild.roles.cache.find(role => tran_str(role.name) == tran_str(roleName));
-			if (serverRole == undefined) return send_dm(msg, "Unable to find server role with the name " + roleName);
+			if (serverRole == undefined) return msg.channel.send("Unable to find server role with the name " + roleName);
 			let placeEmoji = emoji(roleName.substring(2).capitalize(), msg);
 
 			currentPlayer.roles.remove(commandParams[2].startsWith("rt") ? '723753340063842345' : '723753312331104317');
@@ -378,7 +378,7 @@ client.on('message', async msg => {
 		var partCommandParam = commandParams[1];
 		if (commandParams[1] === undefined || commandParams[1] === "")
 			partCommandParam = await determineLatestEvent(globalMode);
-		if (!partCommandParam) return send_dm(msg, "Error. Unable to retrieve latest war id");
+		if (!partCommandParam) return msg.channel.send("Error. Unable to retrieve latest war id");
 
 		const specialRoles = ["Boss", "Custom Track Arbitrator", "Lower Tier CT Arbitrator", "Higher Tier CT Arbitrator", "LT RT Reporter", "LT CT Reporter", "Lower Tier RT Arbitrator", "Higher Tier RT Arbitrator", "Developer"];
 		const modeRoles = (globalMode === "rt") ? rtRoles : ctRoles;
@@ -397,7 +397,7 @@ client.on('message', async msg => {
 			}
 		}
 		let result = await getRequest(globalMode, partCommandParam, msg);
-		if (!result && !isNaN(partCommandParam)) return send_dm(msg, "Error. Unable to find player/event with the name/id " + partCommandParam);
+		if (!result && !isNaN(partCommandParam)) return msg.channel.send("Error. Unable to find player/event with the name/id " + partCommandParam);
 		var mentionPlayers = '';
 		let resultParamsArray = [];
 
@@ -408,7 +408,7 @@ client.on('message', async msg => {
 				}
 			}
 			result = await getRequest(globalMode, resultParamsArray.join(","), msg);
-			if (!result) return send_dm(msg, "Error. Unable to find players with the name(s) " + resultParamsArray.join(","));
+			if (!result) return msg.channel.send("Unable to find players with the name(s) " + resultParamsArray.join(","));
 			for (i = 0; i < commandParams.length; i++) {
 				let checking = true;
 				for (j = 0; j < result.length; j++) {
@@ -416,7 +416,7 @@ client.on('message', async msg => {
 						checking = false;
 				}
 				if (checking && i !== 0 && commandParams[i] !== "np")
-					send_dm(msg, "Unable to find server member with the name " + commandParams[i]);
+					msg.channel.send("Unable to find server member with the name " + commandParams[i]);
 			}
 			for (i = 0; i < result.length; i++) {
 				if (i % 2 === 0) {
@@ -424,7 +424,7 @@ client.on('message', async msg => {
 					let currentPlayer = msg.guild.members.cache.find(member => tran_str(member.displayName) === tran_str(result[i]));
 					let currentPlayerCollection, collectionNames = [];
 					if (currentPlayer === undefined) {
-						send_dm(msg, "Unable to find server member with the name " + result[i]);
+						msg.channel.send("Unable to find server member with the name " + result[i]);
 						continue;
 					}
 					for (j = 0; j < modeRoles.length; j++) {
@@ -438,7 +438,7 @@ client.on('message', async msg => {
 							currentPlayerCollection.each(member => collectionNames.push(member.user.tag));
 					}
 					if (currentPlayer === undefined) {
-						send_dm(msg, result[i] + " does not have a rank role yet.");
+						msg.channel.send(result[i] + " does not have a rank role yet.");
 						continue;
 					}
 					let hasDupRoles = checkForDuplicateRoles(modeRoles, currentPlayer);
@@ -473,7 +473,7 @@ client.on('message', async msg => {
 					let currentPlayer = await msg.guild.members.cache.find(member => tran_str(member.displayName) === tran_str(players[i]));
 					let currentPlayerCollection, collectionNames = [];
 					if (currentPlayer === undefined) {
-						send_dm(msg, "Unable to find server member with the name " + players[i]);
+						msg.channel.send("Unable to find server member with the name " + players[i]);
 						continue;
 					}
 					//...
@@ -497,7 +497,7 @@ client.on('message', async msg => {
 						}
 					}
 					if (currentPlayer === undefined) {
-						send_dm(msg, players[i] + " does not have a rank role yet.");
+						msg.channel.send(players[i] + " does not have a rank role yet.");
 						continue;
 					}
 					let hasDupRoles = checkForDuplicateRoles(modeRoles, currentPlayer);
