@@ -903,7 +903,10 @@ client.on('message', async msg => {
 
 		if (commandParams[0] == "!place") {
 			if (commandParams.length < 3) return msg.reply("One or more arguments are missing");
-			let currentPlayer = await msg.guild.members.cache.find(member => member.roles.cache.some(role => role.id == (commandParams[2].startsWith("rt") ? '723753340063842345' : '723753312331104317')) && tran_str(member.displayName) == tran_str(commandParams[1]));
+			let currentPlayer = msgs.mentions.members.first();
+			if (!currentPlayer) {
+				currentPlayer = await msg.guild.members.cache.find(member => member.roles.cache.some(role => role.id == (commandParams[2].startsWith("rt") ? '723753340063842345' : '723753312331104317')) && tran_str(member.displayName) == tran_str(commandParams[1]));
+			}
 			if (currentPlayer == undefined) {
 				msg.channel.send("Unable to find server member with a placement role with the name " + commandParams[1]);
 				return;
