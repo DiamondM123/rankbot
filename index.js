@@ -920,10 +920,12 @@ client.on('message', async msg => {
 			if (serverRole == undefined) return msg.channel.send("Unable to find server role with the name " + roleName);
 			let placeEmoji = emoji(roleName.substring(2).capitalize(), msg);
 
-			currentPlayer.roles.remove(commandParams[2].startsWith("rt") ? '723753340063842345' : '723753312331104317');
-			currentPlayer.roles.add(serverRole.id);
+			await currentPlayer.roles.remove(commandParams[2].startsWith("rt") ? '723753340063842345' : '723753312331104317');
+			await currentPlayer.roles.add(serverRole.id);
 			return msg.channel.send(`<@${currentPlayer.id}> ${placeEmoji} Placement`);
 		}
+
+
 
 		// START
 
