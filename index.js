@@ -1,5 +1,6 @@
 const Discord = require('discord.js');
 const {config} = require('dotenv');
+const fs = require('fs');
 
 const request = require("request");
 const latinise = require('./latinise'); //ty cheron and company
@@ -19,13 +20,30 @@ const enableTop50 = false;
 
 const activityForTop50 = 86400*1000*7; // in milliseconds
 
-const rtRoles = ["RT Iron", "RT Bronze", "RT Silver", "RT Gold", "RT Ruby", "RT Platinum", "RT Emerald", "RT Diamond", "RT Master", "RT Grandmaster"];
-const ctRoles = ["CT Iron", "CT Bronze", "CT Silver", "CT Gold", "CT Platinum", "CT Emerald", "CT Diamond", "CT Master", "CT Grandmaster"];
-
-const rtRanges = [1000, 2500, 4000, 4750, 5500, 7000, 8500, 10000, 11000];
-const ctRanges = [1000, 2250, 3500, 4500, 5500, 7000, 8500, 10000];
+var rtRoles = [], ctRoles = [], rtRanges = [], ctRanges = [];
 
 var finalTop50Str = "";
+
+function populateRolesRanges() {
+	rtRoles = [], ctRoles = [], rtRanges = [], ctRanges = [];
+	if (!fs.existsSync(__dirname + "/rankings.txt")) {
+		fs.writeFileSync(__dirname + "/rankings.txt", "RT Iron,0\nRT Bronze,1000");
+	}
+	let rankData = fs.readFileSync(__dirname + "/rankings.txt", "utf-8");
+	rankData = rankData.split("\n");
+	for (let i = 0; i < rankData.length; i++) {
+		if (rankData[i].startsWith("RT")) {
+			rtRoles.push(rankData[i].split(",")[0]);
+			if (Number(rankData[i].split(",")[1]) != 0)
+				rtRanges.push(Number(rankData[i].split(",")[1]));
+		}
+		if (rankData[i].startsWith("CT")) {
+			ctRoles.push(rankData[i].split(",")[0]);
+			if (Number(rankData[i].split(",")[1]) != 0)
+				ctRanges.push(Number(rankData[i].split(",")[1]));
+		}
+	}
+}
 
 const downloadPage = (url) => {
     return new Promise((resolve, reject) => {
@@ -292,11 +310,12 @@ client.on('message', async msg => {
 		//<:top:801111279157641246>
 		//msg.channel.send(emoji('top', msg));
 		finalTop50Str = "";
+		var contentForRankings = msg.content;
 		msg.content = msg.content.toLowerCase();
 		// let hahaha = await downloadPage("https://mariokartboards.com/lounge/json/player.php?type=rt&name=Fox,kenchan,Killua,neuro,Shaun,Jeff,Kaspie,barney,meraki,pachu,Quinn,Leops,Mikey,jun,Sane,rusoX,Az,EmilP,Batcake,Taz,Sora,Dane,lo,Solar,Goober");
 		// hahaha = JSON.parse(hahaha);
 		// console.log(hahaha);
-		const commandList = ["!rt", "!ct", "!dp", "!top50", "!place"];
+		const commandList = ["!rt", "!ct", "!dp", "!top50", "!place", "!editrankings", "!deleterankings", "!viewrankings"];
 		let go_on = false;
 		for (command in commandList) {
 			if (msg.content.toLowerCase().split(/\s+/)[0] == commandList[command]) go_on = true;
@@ -346,6 +365,82 @@ client.on('message', async msg => {
 			doTop50Stuff(msg, 'ct');
 			return;
 		}
+
+		if (msg.content.startsWith("!viewrankings")) {
+			try {
+				let rankData = fs.readFileSync(__dirname + "/rankings.txt", "utf-8");
+				rankData = rankData.split("\n");
+				let updaterankmsg = "";
+				for (let i = 0; i < rankData.length; i++) {
+					let upperRange = i == rankData.length-1 || Number(rankData[i+1].split(",")[1]) < Number(rankData[i].split(",")[1]) ? "+" : " - " + (Number(rankData[i+1].split(",")[1].replace(/\s+/g, ''))-1).toString();
+					updaterankmsg += `${rankData[i].split(",")[0]} => ${rankData[i].split(",")[1].replace(/\s+/g, '') + upperRange} MMR\n`;
+				}
+				return msg.channel.send(updaterankmsg);
+			} catch (error) {
+				return msg.channel.send("There are no rankings to view");
+			}
+		}
+
+		if (msg.content.startsWith("!editrankings") || msg.content.startsWith("!deleterankings")) {
+			let args = contentForRankings.replace("!editrankings", "").replace("!deleterankings", "");
+			args = args.split(",");
+			for (let arg in args) {
+				while (args[arg][0] == " ") args[arg] = args[arg].substring(1);
+			}
+			let updaterankmsg = "";
+			let rankData = fs.readFileSync(__dirname + "/rankings.txt", "utf-8");
+			rankData = rankData.split("\n");
+			let ranks = [], mmrs = [];
+			for (let rank in rankData) {
+				if (rankData[rank].replace(/\s+/g, '') != "") {
+					ranks.push(rankData[rank].split(",")[0]);
+					mmrs.push(rankData[rank].split(",")[1]);
+				}
+			}
+			if (msg.content.startsWith("!editrankings")) {
+				for (let i = 0; i < args.length; i++) {
+					if (i%2==0) {
+						let roleIndex = ranks.find(element => tran_str(element) == tran_str(args[i]));
+						if (!roleIndex) {
+							if (!isNaN(args[i+1])) {
+								updaterankmsg += `Ranking "${args[i]}" has been added with MMR threshold ${args[i+1]}\n`;
+								ranks.push(args[i]);
+								mmrs.push(args[i+1]);
+							} else {
+								updaterankmsg += `Ranking "${args[i]}" does not have a valid mmr. This has not been added\n`;
+							}
+						} else {
+							if (!isNaN(args[i+1])) {
+								mmrs[ranks.indexOf(roleIndex)] = args[i+1];
+								updaterankmsg += `The MMR threshold of "${roleIndex}" has been changed to ${args[i+1]}\n`;
+							} else {
+								updaterankmsg += `"${args[i+1]}" is not a valid MMR. This has not been changed\n`;
+							}
+						}
+					}
+				}
+			} else {
+				for (let i = 0; i < args.length; i++) {
+					let roleIndex = ranks.find(element => tran_str(element) == tran_str(args[i]));
+					if (!roleIndex) {
+						updaterankmsg += `Unable to find/delete "${args[i]}" ranking\n`;
+					} else {
+						updaterankmsg += `"${roleIndex}" ranking has been deleted\n`;
+						ranks.splice(roleIndex,1);
+						mmrs.splice(roleIndex,1);
+					}
+				}
+			}
+
+			rankData = "";
+			for (let i = 0; i < ranks.length; i++) {
+				rankData += ranks[i] + "," + mmrs[i] + (i == ranks.length-1 ? "" : "\n");
+			}
+			fs.writeFileSync(__dirname + "/rankings.txt", rankData);
+			populateRolesRanges();
+			return msg.channel.send(updaterankmsg);
+		}
+
 		const commandParams = msg.content.split(/\s+/);
 		msg.delete();
 
@@ -530,7 +625,7 @@ client.on('message', async msg => {
 		console.error('ERROR:');
         console.error(error);
 	}
-})
+});
 
 client.on('userUpdate', (oldMember, newMember) => {
 	const loungeGuild = client.guilds.cache.find(guild => guild.name === 'Lounge');
@@ -549,4 +644,7 @@ client.on('ready', () => {
 	client.user.setActivity("Pro Jones hack the mainframe", {type: "WATCHING"}).then(presence => console.log(`Activity set to ${presence.activities[0].name}`)).catch(console.error);
 })
 
+populateRolesRanges();
 client.login(process.env.TOKEN);
+
+// !editrankings RT Iron, 0, RT Bronze, 1000, RT Silver, 2500, RT Gold, 4000, RT Ruby, 4750, RT Platinum, 5500, RT Emerald, 7000, RT Diamond, 8500, RT Master, 10000, RT Grandmaster, 11000, CT Iron, 0, CT Bronze, 1000, CT Silver, 2250, CT Gold, 3500, CT Platinum, 4500, CT Emerald, 5500, CT Diamond, 7000, CT Master, 8500, CT Grandmaster, 10000
