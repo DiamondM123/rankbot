@@ -315,7 +315,7 @@ client.on('message', async msg => {
 		// let hahaha = await downloadPage("https://mariokartboards.com/lounge/json/player.php?type=rt&name=Fox,kenchan,Killua,neuro,Shaun,Jeff,Kaspie,barney,meraki,pachu,Quinn,Leops,Mikey,jun,Sane,rusoX,Az,EmilP,Batcake,Taz,Sora,Dane,lo,Solar,Goober");
 		// hahaha = JSON.parse(hahaha);
 		// console.log(hahaha);
-		const commandList = ["!rt", "!ct", "!dp", "!top50", "!place", "!editrankings", "!deleterankings", "!viewrankings"];
+		const commandList = ["!rt", "!ct", "!dp", "!top50", "!place", "!editrankings", "!deleterankings", "!viewrankings", "!insertrankings"];
 		let go_on = false;
 		for (command in commandList) {
 			if (msg.content.toLowerCase().split(/\s+/)[0] == commandList[command]) go_on = true;
@@ -381,8 +381,8 @@ client.on('message', async msg => {
 			}
 		}
 
-		if (msg.content.startsWith("!editrankings") || msg.content.startsWith("!deleterankings")) {
-			let args = contentForRankings.replace("!editrankings", "").replace("!deleterankings", "");
+		if (msg.content.startsWith("!editrankings") || msg.content.startsWith("!deleterankings") || msg.content.startsWith("!insertrankings")) {
+			let args = contentForRankings.replace("!editrankings", "").replace("!deleterankings", "").replace("!insertrankings", "");
 			args = args.split(",");
 			for (let arg in args) {
 				while (args[arg][0] == " ") args[arg] = args[arg].substring(1);
@@ -397,15 +397,25 @@ client.on('message', async msg => {
 					mmrs.push(rankData[rank].split(",")[1]);
 				}
 			}
-			if (msg.content.startsWith("!editrankings")) {
+			if (msg.content.startsWith("!editrankings") || msg.content.startsWith("!insertrankings")) {
+				let insertIndex = false;
+				if (msg.content.startsWith("!insertrankings")) {
+					insertIndex = ranks.find(element => tran_str(element) == tran_str(args[0]));
+					if (!insertIndex) {
+						updaterankmsg += `Unable to find role "${args[0]}"\n`;
+						return msg.channel.send(updaterankmsg);
+					} else {
+						args.shift();
+					}
+				}
 				for (let i = 0; i < args.length; i++) {
 					if (i%2==0) {
 						let roleIndex = ranks.find(element => tran_str(element) == tran_str(args[i]));
 						if (!roleIndex) {
 							if (!isNaN(args[i+1])) {
 								updaterankmsg += `Ranking "${args[i]}" has been added with MMR threshold ${args[i+1]}\n`;
-								ranks.push(args[i]);
-								mmrs.push(args[i+1]);
+								ranks.splice(insertIndex ? ranks.indexOf(insertIndex)+1 : ranks.length, 0, args[i]);
+								mmrs.splice(insertIndex ? ranks.indexOf(insertIndex)+1 : ranks.length, 0, args[i+1]);
 							} else {
 								updaterankmsg += `Ranking "${args[i]}" does not have a valid mmr. This has not been added\n`;
 							}
