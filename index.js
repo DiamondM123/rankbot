@@ -549,7 +549,7 @@ client.on('message', async msg => {
 					mmrs.push(rankData[rank].split(",")[1]);
 				}
 			}
-			if (msg.content.startsWith("!editrankings") || msg.content.startsWith("!insertrankings")) {
+			if (msg.content.startsWith("!editlrrankings") || msg.content.startsWith("!insertlrrankings")) {
 				let insertIndex = false;
 				if (msg.content.startsWith("!insertrankings")) {
 					insertIndex = ranks.find(element => tran_str(element) == tran_str(args[0]));
