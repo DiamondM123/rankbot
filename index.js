@@ -452,7 +452,7 @@ client.on('message', async msg => {
 				let updaterankmsg = "";
 				for (let i = 0; i < rankData.length; i++) {
 					let upperRange = i == rankData.length-1 || Number(rankData[i+1].split(",")[1]) < Number(rankData[i].split(",")[1]) ? "+" : " - " + (Number(rankData[i+1].split(",")[1].replace(/\s+/g, ''))-1).toString();
-					updaterankmsg += `${rankData[i].split(",")[0]} => ${rankData[i].split(",")[1].replace(/\s+/g, '') + upperRange} MMR\n`;
+					updaterankmsg += `${rankData[i].split(",")[0]} => ${rankData[i].split(",")[1].replace(/\s+/g, '') + upperRange} LR\n`;
 				}
 				return msg.channel.send(updaterankmsg);
 			} catch (error) {
