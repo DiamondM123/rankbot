@@ -31,6 +31,9 @@ function populateRolesRanges() {
 	if (!fs.existsSync(__dirname + "/rankings.txt")) {
 		fs.writeFileSync(__dirname + "/rankings.txt", "RT Iron,0\nRT Bronze,1000");
 	}
+	if (!fs.existsSync(__dirname + "/classes.txt")) {
+		fs.writeFileSync(__dirname + "/classes.txt", "RT Class F,0\nRT Class E,1000");
+	}
 	let rankData = fs.readFileSync(__dirname + "/rankings.txt", "utf-8");
 	let lrRankData = fs.readFileSync(__dirname + "/classes.txt", "utf-8");
 	rankData = rankData.split("\n");
