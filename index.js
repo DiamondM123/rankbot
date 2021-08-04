@@ -85,7 +85,7 @@ const determineLatestEvent = async (mode) => {
 		let parsedData = JSON.parse(html);
 		parsedData = parsedData.results;
 		if (parsedData.length > 0)
-			return parsedData[0].warid.toString();
+			return parsedData[0].event_id.toString();
 		else
 			return false;
 	} catch (error) {
@@ -125,13 +125,13 @@ const getRequest = async (mode, warid, msg_obj) => {
 		var num = mode == 'rt' ? '1' : '2';
 		if (enableTop50) {
 			let top50names = [];
-			let top50html = await downloadPage(`https://mariokartboards.com/lounge/api/ladderplayer.php?ladder_id=${num}&limit=150&compress`);
+			let top50html = await downloadPage(`https://mariokartboards.com/lounge/api/ladderplayer.php?ladder_id=${num}&all=1&compress`);
 			let top50json = JSON.parse(top50html);
 			top50json = top50json.results;
 			let top50OnPage = [];
 			let currentDate = await getCurrentLoungeDate();
 			if (!currentDate) currentDate = new Date();
-			for (let i = 0, counter = 0; i < top50json.length; i++) {
+			for (let i = 0, counter = 0; i < 150; i++) {
 				let compareDate = new Date(top50json[i].last_event_date);
 				if (currentDate - compareDate > activityForTop50) {
 					continue;
@@ -307,7 +307,7 @@ const doTop50Stuff = async (msg_obj, mode) => {
 	try {
 		if (enableTop50) {
 			var num = mode == 'rt' ? '1' : '2';
-			let ldbPage = await downloadPage(`https://mariokartboards.com/lounge/api/ladderplayer.php?ladder_id=${num}&all=1`);
+			let ldbPage = await downloadPage(`https://mariokartboards.com/lounge/api/ladderplayer.php?ladder_id=${num}&all=1&compress`);
 			ldbPage = JSON.parse(ldbPage);
 			ldbPage = ldbPage.results;
 			let playerswithTop50 = [];
@@ -917,4 +917,4 @@ client.on('ready', () => {
 populateRolesRanges();
 client.login(process.env.TOKEN);
 
-// !editrankings RT Iron, 0, RT Bronze, 1000, RT Silver, 2500, RT Gold, 4000, RT Ruby, 4750, RT Platinum, 5500, RT Emerald, 7000, RT Diamond, 8500, RT Master, 10000, RT Grandmaster, 11000, CT Iron, 0, CT Bronze, 1000, CT Silver, 2250, CT Gold, 3500, CT Platinum, 4500, CT Emerald, 5500, CT Diamond, 7000, CT Master, 8500, CT Grandmaster, 10000
+// !editrankings RT Class F, 0, RT Class E, 1000, RT Class D, 2500, RT Class C, 4000, RT Class B, 4750, RT Class A, 5500, RT Class S, 7000, RT Class X, 8500, CT Class F, 0, CT Class E, 1000, CT Class D, 2250, CT Class C, 3250, CT Class B, 4500, CT Class A, 5250, CT Class S, 6750, CT Class X, 8250
