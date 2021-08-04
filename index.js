@@ -375,7 +375,7 @@ client.on('message', async msg => {
 		// let hahaha = await downloadPage("https://mariokartboards.com/lounge/json/player.php?type=rt&name=Fox,kenchan,Killua,neuro,Shaun,Jeff,Kaspie,barney,meraki,pachu,Quinn,Leops,Mikey,jun,Sane,rusoX,Az,EmilP,Batcake,Taz,Sora,Dane,lo,Solar,Goober");
 		// hahaha = JSON.parse(hahaha);
 		// console.log(hahaha);
-		const commandList = ["!rt", "!ct", "!dp", "!top50", "!place"/*, "!editrankings", "!deleterankings", "!viewrankings", "!insertrankings"*/];
+		const commandList = ["!rt", "!ct", "!dp", "!top50", "!place", "!viewrankings"/*, "!editrankings", "!deleterankings", "!insertrankings"*/];
 		let go_on = false;
 		for (command in commandList) {
 			if (msg.content.toLowerCase().split(/\s+/)[0] == commandList[command]) go_on = true;
@@ -428,21 +428,21 @@ client.on('message', async msg => {
 			return;
 		}
 
-		// if (msg.content.startsWith("!viewrankings")) {
-		// 	if (!canUpdateRankings && msg.member.id != '222356623392243712') return;
-		// 	try {
-		// 		let rankData = fs.readFileSync(__dirname + "/rankings.txt", "utf-8");
-		// 		rankData = rankData.split("\n");
-		// 		let updaterankmsg = "";
-		// 		for (let i = 0; i < rankData.length; i++) {
-		// 			let upperRange = i == rankData.length-1 || Number(rankData[i+1].split(",")[1]) < Number(rankData[i].split(",")[1]) ? "+" : " - " + (Number(rankData[i+1].split(",")[1].replace(/\s+/g, ''))-1).toString();
-		// 			updaterankmsg += `${rankData[i].split(",")[0]} => ${rankData[i].split(",")[1].replace(/\s+/g, '') + upperRange} MMR\n`;
-		// 		}
-		// 		return msg.channel.send(updaterankmsg);
-		// 	} catch (error) {
-		// 		return msg.channel.send("There are no rankings to view");
-		// 	}
-		// }
+		if (msg.content.startsWith("!viewrankings")) {
+			if (!canUpdateRankings && msg.member.id != '222356623392243712') return;
+			try {
+				let rankData = fs.readFileSync(__dirname + "/rankings.txt", "utf-8");
+				rankData = rankData.split("\n");
+				let updaterankmsg = "";
+				for (let i = 0; i < rankData.length; i++) {
+					let upperRange = i == rankData.length-1 || Number(rankData[i+1].split(",")[1]) < Number(rankData[i].split(",")[1]) ? "+" : " - " + (Number(rankData[i+1].split(",")[1].replace(/\s+/g, ''))-1).toString();
+					updaterankmsg += `${rankData[i].split(",")[0]} => ${rankData[i].split(",")[1].replace(/\s+/g, '') + upperRange} MMR\n`;
+				}
+				return msg.channel.send(updaterankmsg);
+			} catch (error) {
+				return msg.channel.send("There are no rankings to view");
+			}
+		}
 
 		// if (msg.content.startsWith("!editrankings") || msg.content.startsWith("!deleterankings") || msg.content.startsWith("!insertrankings")) {
 		// 	if (!canUpdateRankings && msg.member.id != '222356623392243712') return;
