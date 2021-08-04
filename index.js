@@ -21,16 +21,20 @@ const enableTop50 = false;
 const activityForTop50 = 86400*1000*7; // in milliseconds
 
 var rtRoles = [], ctRoles = [], rtRanges = [], ctRanges = [];
+var rtLRRoles = [], ctLRRoles = [], rtLRRanges = [], ctLRRanges = [];
 
 var finalTop50Str = "";
 
 function populateRolesRanges() {
 	rtRoles = [], ctRoles = [], rtRanges = [], ctRanges = [];
+	rtLRRoles = [], ctLRRoles = [], rtLRRanges = [], ctLRRanges = [];
 	if (!fs.existsSync(__dirname + "/rankings.txt")) {
 		fs.writeFileSync(__dirname + "/rankings.txt", "RT Iron,0\nRT Bronze,1000");
 	}
 	let rankData = fs.readFileSync(__dirname + "/rankings.txt", "utf-8");
+	let lrRankData = fs.readFileSync(__dirname + "/classes.txt", "utf-8");
 	rankData = rankData.split("\n");
+	lrRankData = lrRankData.split("\n");
 	for (let i = 0; i < rankData.length; i++) {
 		if (rankData[i].startsWith("RT")) {
 			rtRoles.push(rankData[i].split(",")[0]);
@@ -41,6 +45,18 @@ function populateRolesRanges() {
 			ctRoles.push(rankData[i].split(",")[0]);
 			if (Number(rankData[i].split(",")[1]) != 0)
 				ctRanges.push(Number(rankData[i].split(",")[1]));
+		}
+	}
+	for (let i = 0; i < lrRankData.length; i++) {
+		if (lrRankData[i].startsWith("RT")) {
+			rtLRRoles.push(lrRankData[i].split(",")[0]);
+			if (Number(lrRankData[i].split(",")[1]) != 0)
+				rtLRRanges.push(Number(lrRankData[i].split(",")[1]));
+		}
+		if (lrRankData[i].startsWith("CT")) {
+			ctLRRoles.push(lrRankData[i].split(",")[0]);
+			if (Number(lrRankData[i].split(",")[1]) != 0)
+				ctLRRanges.push(Number(lrRankData[i].split(",")[1]));
 		}
 	}
 }
@@ -61,8 +77,10 @@ const downloadPage = (url) => {
 
 const determineLatestEvent = async (mode) => {
 	try {
-		let html = await downloadPage('https://mariokartboards.com/lounge/json/event.php?type=' + mode + '&all&compress');
+		let num = mode == 'rt' ? '1' : '2';
+		let html = await downloadPage('https://mariokartboards.com/lounge/api/ladderevent.php?ladder_id=' + num + '&all=1&compress');
 		let parsedData = JSON.parse(html);
+		parsedData = parsedData.results;
 		if (parsedData.length > 0)
 			return parsedData[0].warid.toString();
 		else
@@ -87,8 +105,9 @@ const emoji = (inp, msg_o) => {
 
 async function getCurrentLoungeDate() {
 	try {
-		let currentDate = await downloadPage("https://mariokartboards.com/lounge/json/serverstats.php");
+		let currentDate = await downloadPage("https://mariokartboards.com/lounge/api/serverstats.php");
 		currentDate = JSON.parse(currentDate);
+		currentDate = currentDate.results;
 		return new Date(currentDate.server_timestamp);
 	} catch(error) {
 		console.log(error);
@@ -96,52 +115,63 @@ async function getCurrentLoungeDate() {
 }
 
 const getRequest = async (mode, warid, msg_obj) => {
-	var roles = [], members = [];
+	var roles = [], members = [], lrRoles = [], lrMembers = [];
 	try {
 		const checkRoles = mode == 'rt' ? rtRoles : ctRoles;
-		let top50names = [];
-		let top50html = await downloadPage(`https://mariokartboards.com/lounge/json/player.php?type=${mode}&limit=150&compress`);
-		let top50json = JSON.parse(top50html);
-		let top50OnPage = [];
-		let currentDate = await getCurrentLoungeDate();
-		if (!currentDate) currentDate = new Date();
-		for (let i = 0, counter = 0; i < top50json.length; i++) {
-			let compareDate = new Date(top50json[i].last_event_date);
-			if (currentDate - compareDate > activityForTop50) {
-				continue;
+		const LRCheckRoles = mode == 'rt' ? rtLRRoles : ctLRRoles;
+		var num = mode == 'rt' ? '1' : '2';
+		if (enableTop50) {
+			let top50names = [];
+			let top50html = await downloadPage(`https://mariokartboards.com/lounge/api/ladderplayer.php?ladder_id=${num}&limit=150&compress`);
+			let top50json = JSON.parse(top50html);
+			top50json = top50json.results;
+			let top50OnPage = [];
+			let currentDate = await getCurrentLoungeDate();
+			if (!currentDate) currentDate = new Date();
+			for (let i = 0, counter = 0; i < top50json.length; i++) {
+				let compareDate = new Date(top50json[i].last_event_date);
+				if (currentDate - compareDate > activityForTop50) {
+					continue;
+				}
+				counter++;
+				top50OnPage.push(tran_str(top50json[i].player_name));
+				if (counter >= 50) break;
 			}
-			counter++;
-			top50OnPage.push(tran_str(top50json[i].name));
-			if (counter >= 50) break;
-		}
-		let currentPlayerCollection = await msg_obj.guild.members.cache.filter(member => member.roles.cache.some(role => role.id == (mode == 'rt' ? '800958350446690304' : '800958359569694741')));
-		await currentPlayerCollection.each(member => top50names.push(tran_str(member.displayName)));
-		// remove the role from the people that have it and don't meet requirements
-		for (let i = 0; i < top50names.length; i++) {
-			if (!top50OnPage.includes(top50names[i])) {
-				let currentPlayer = await msg_obj.guild.members.cache.find(member => tran_str(member.displayName) == top50names[i] && member.roles.cache.some(role => checkRoles.includes(role.name)) && !member.roles.cache.some(role => role.name === "Unverified"));
-				if (currentPlayer != undefined && enableTop50) await currentPlayer.roles.remove(mode == "rt" ? '800958350446690304' : '800958359569694741');
+			let currentPlayerCollection = await msg_obj.guild.members.cache.filter(member => member.roles.cache.some(role => role.id == (mode == 'rt' ? '800958350446690304' : '800958359569694741')));
+			await currentPlayerCollection.each(member => top50names.push(tran_str(member.displayName)));
+			// remove the role from the people that have it and don't meet requirements
+			for (let i = 0; i < top50names.length; i++) {
+				if (!top50OnPage.includes(top50names[i])) {
+					let currentPlayer = await msg_obj.guild.members.cache.find(member => tran_str(member.displayName) == top50names[i] && member.roles.cache.some(role => checkRoles.includes(role.name)) && !member.roles.cache.some(role => role.name === "Unverified"));
+					if (currentPlayer != undefined && enableTop50) await currentPlayer.roles.remove(mode == "rt" ? '800958350446690304' : '800958359569694741');
+				}
 			}
-		}
-		// add role only to those who don't have it already
-		for (let i = 0; i < top50OnPage.length; i++) {
-			if (!top50names.includes(top50OnPage[i])) {
-				let currentPlayer = await msg_obj.guild.members.cache.find(member => tran_str(member.displayName) == top50OnPage[i] && member.roles.cache.some(role => checkRoles.includes(role.name)) && !member.roles.cache.some(role => role.name === "Unverified"));
-				if (currentPlayer != undefined && enableTop50) {
-					await currentPlayer.roles.add(mode == "rt" ? '800958350446690304' : '800958359569694741');
-					finalTop50Str += `\n<@${currentPlayer.id}> <:top:795155129375522876>`;
+			// add role only to those who don't have it already
+			for (let i = 0; i < top50OnPage.length; i++) {
+				if (!top50names.includes(top50OnPage[i])) {
+					let currentPlayer = await msg_obj.guild.members.cache.find(member => tran_str(member.displayName) == top50OnPage[i] && member.roles.cache.some(role => checkRoles.includes(role.name)) && !member.roles.cache.some(role => role.name === "Unverified"));
+					if (currentPlayer != undefined && enableTop50) {
+						await currentPlayer.roles.add(mode == "rt" ? '800958350446690304' : '800958359569694741');
+						finalTop50Str += `\n<@${currentPlayer.id}> <:top:795155129375522876>`;
+					}
 				}
 			}
 		}
+		
 		const currentRange = mode == 'rt' ? rtRanges : ctRanges;
+		const LRCurrentRange = mode == 'rt' ? rtLRRanges : ctLRRanges;
 		if (isNaN(warid)) {
-			let html = await downloadPage('https://mariokartboards.com/lounge/json/player.php?type=' + mode + '&name=' + warid);
+			let html = await downloadPage('https://mariokartboards.com/lounge/api/ladderplayer.php?ladder_id=' + num + '&player_name=' + warid);
 			let parsedData = JSON.parse(html);
+			parsedData = parsedData.results;
 			let returnArray = [];
+			let LRReturnArray = [];
 			if (parsedData.length > 0) {
 				for (let i = 0; i < parsedData.length; i++) {
-					returnArray.push(parsedData[i].name);
+					returnArray.push(parsedData[i].player_name);
+					LRReturnArray.push(parsedData[i].player_name);
 					let currentMMR = Number(parsedData[i].current_mmr);
+					let currentLR = Number(parsedData[i].current_lr);
 					for (let j = 0; j < checkRoles.length; j++) {
 						if (j == 0) {
 							if (currentMMR < currentRange[j]) returnArray.push(checkRoles[j]);
@@ -151,28 +181,53 @@ const getRequest = async (mode, warid, msg_obj) => {
 							if (currentMMR >= currentRange[j-1] && currentMMR < currentRange[j]) returnArray.push(checkRoles[j]);
 						}
 					}
+					for (let j = 0; j < LRCheckRoles.length; j++) {
+						if (j == 0) {
+							if (currentLR < LRCurrentRange[j]) LRReturnArray.push(LRCheckRoles[j]);
+						} else if (j == LRCheckRoles.length-1) {
+							if (currentLR >= LRCurrentRange[j-1]) LRReturnArray.push(LRCheckRoles[j]);
+						} else {
+							if (currentLR >= LRCurrentRange[j-1] && currentLR < LRCurrentRange[j]) LRReturnArray.push(LRCheckRoles[j]);
+						}
+					}
 				}
 			} else
 				return false;
-			return returnArray;
+			return [returnArray, LRReturnArray];
 		} else {
-			let html = await downloadPage('https://mariokartboards.com/lounge/json/event.php?type=' + mode + '&id=' + warid + "&compress");
+			let html = await downloadPage('https://mariokartboards.com/lounge/api/ladderevent.php?ladder_id=' + num + '&event_id=' + warid + "&compress");
 			let parsedData = JSON.parse(html);
+			parsedData = parsedData.results;
 			if (parsedData.length > 1) {
 				for (let i = 0; i < parsedData.length; i++) {
 					let promotion = parsedData[i].promotion;
 					let currentMr = parsedData[i].current_mmr;
 					let updatedMr = parsedData[i].updated_mmr;
+					let currentLr = parsedData[i].current_lr;
+					let updatedLr = parsedData[i].updated_lr;
 
 					for (let j = 0; j < currentRange.length; j++) {
 						if (currentMr >= currentRange[j] && updatedMr < currentRange[j]) {
-							members.push(parsedData[i].name);
+							members.push(parsedData[i].player_name);
 							roles.push(checkRoles[j]);
 							continue;
 						}
 						if (currentMr < currentRange[j] && updatedMr >= currentRange[j]) {
-							members.push(parsedData[i].name);
+							members.push(parsedData[i].player_name);
 							roles.push(checkRoles[j+1]);
+							continue;
+						}
+					}
+
+					for (let j = 0; j < LRCurrentRange.length; j++) {
+						if (currentLr >= LRCurrentRange[j] && updatedLr < LRCurrentRange[j]) {
+							lrMembers.push(parsedData[i].player_name);
+							lrRoles.push(LRCheckRoles[j]);
+							continue;
+						}
+						if (currentLr < LRCurrentRange[j] && updatedLr >= LRCurrentRange[j]) {
+							lrMembers.push(parsedData[i].player_name);
+							lrRoles.push(LRCheckRoles[j+1]);
 							continue;
 						}
 					}
@@ -190,7 +245,10 @@ const getRequest = async (mode, warid, msg_obj) => {
 				return false;
 			let combinedroles = roles.join(",");
 			let combinedmembers = members.join(",");
-			return (combinedroles + "," + combinedmembers);
+			let combinedlrroles = lrRoles.join(",");
+			let combinedlrmembers = lrMembers.join(",");
+
+			return [(combinedroles + "," + combinedmembers),(combinedlrroles + "," + combinedlrmembers)];
 		}
 	} catch (error) {
 		console.error('ERROR:');
@@ -245,8 +303,10 @@ const removeDuplicates = (array) => {
 const doTop50Stuff = async (msg_obj, mode) => {
 	try {
 		if (enableTop50) {
-			let ldbPage = await downloadPage(`https://mariokartboards.com/lounge/json/leaderboard.php?type=${mode}`);
+			var num = mode == 'rt' ? '1' : '2';
+			let ldbPage = await downloadPage(`https://mariokartboards.com/lounge/api/ladderplayer.php?ladder_id=${num}&all=1`);
 			ldbPage = JSON.parse(ldbPage);
+			ldbPage = ldbPage.results;
 			let playerswithTop50 = [];
 			let playerswithTop50Col = msg_obj.guild.members.cache.filter(member => member.roles.cache.some(role => role.id == (mode == 'rt' ? '800958350446690304' : '800958359569694741')));
 			if (playerswithTop50Col != undefined)
@@ -255,7 +315,7 @@ const doTop50Stuff = async (msg_obj, mode) => {
 			if (!currentDate) currentDate = new Date();
 			for (let i = 0, counter = 0; i < ldbPage.length; i++) {
 				counter++;
-				let currentPlayerCollection = await msg_obj.guild.members.cache.filter(member => tran_str(member.displayName) == tran_str(ldbPage[i].name) && !member.roles.cache.some(role => role.name == "Unverified") && member.roles.cache.some(role => (mode == 'rt' ? rtRoles.includes(role.name) : ctRoles.includes(role.name))));
+				let currentPlayerCollection = await msg_obj.guild.members.cache.filter(member => tran_str(member.displayName) == tran_str(ldbPage[i].player_name) && !member.roles.cache.some(role => role.name == "Unverified") && member.roles.cache.some(role => (mode == 'rt' ? rtRoles.includes(role.name) : ctRoles.includes(role.name))));
 				let somePlayerArr = [], currentPlayer;
 				currentPlayerCollection.each(member => somePlayerArr.push(member.id));
 				if (somePlayerArr.length > 1) {
@@ -267,7 +327,7 @@ const doTop50Stuff = async (msg_obj, mode) => {
 
 				}
 				if (somePlayerArr.length == 0) {
-					msg_obj.channel.send("Unable to find server member with the name " + ldbPage[i].name + ", who should have " + mode.toUpperCase() + " Top 50");
+					msg_obj.channel.send("Unable to find server member with the name " + ldbPage[i].player_name + ", who should have " + mode.toUpperCase() + " Top 50");
 					continue;
 				}
 				currentPlayer = msg_obj.guild.member(somePlayerArr[0]);
@@ -315,7 +375,7 @@ client.on('message', async msg => {
 		// let hahaha = await downloadPage("https://mariokartboards.com/lounge/json/player.php?type=rt&name=Fox,kenchan,Killua,neuro,Shaun,Jeff,Kaspie,barney,meraki,pachu,Quinn,Leops,Mikey,jun,Sane,rusoX,Az,EmilP,Batcake,Taz,Sora,Dane,lo,Solar,Goober");
 		// hahaha = JSON.parse(hahaha);
 		// console.log(hahaha);
-		const commandList = ["!rt", "!ct", "!dp", "!top50", "!place", "!editrankings", "!deleterankings", "!viewrankings", "!insertrankings"];
+		const commandList = ["!rt", "!ct", "!dp", "!top50", "!place"/*, "!editrankings", "!deleterankings", "!viewrankings", "!insertrankings"*/];
 		let go_on = false;
 		for (command in commandList) {
 			if (msg.content.toLowerCase().split(/\s+/)[0] == commandList[command]) go_on = true;
@@ -333,7 +393,9 @@ client.on('message', async msg => {
 		const rolesThatCanUpdate = ['387347888935534593', '792805904047276032', '399382503825211393', '399384750923579392', '521149807994208295', '792891432301625364', '521154917675827221', '393600567781621761', '520808645252874240', '389203448626806785'];
 		// 504795505583456257
 		let canUpdate = false;
+		let canUpdateRankings = false;
 		for (i = 0; i < rolesThatCanUpdate.length; i++) {
+			if (msg.member.roles.cache.some(role => role.id == rolesThatCanUpdate[i]) && i <= 5) canUpdateRankings = true;
 			if (msg.member.roles.cache.some(role => role.id == rolesThatCanUpdate[i])) canUpdate = true;
 		}
 		if (!canUpdate && !(msg.member.id == '222356623392243712')) {
@@ -366,90 +428,92 @@ client.on('message', async msg => {
 			return;
 		}
 
-		if (msg.content.startsWith("!viewrankings")) {
-			try {
-				let rankData = fs.readFileSync(__dirname + "/rankings.txt", "utf-8");
-				rankData = rankData.split("\n");
-				let updaterankmsg = "";
-				for (let i = 0; i < rankData.length; i++) {
-					let upperRange = i == rankData.length-1 || Number(rankData[i+1].split(",")[1]) < Number(rankData[i].split(",")[1]) ? "+" : " - " + (Number(rankData[i+1].split(",")[1].replace(/\s+/g, ''))-1).toString();
-					updaterankmsg += `${rankData[i].split(",")[0]} => ${rankData[i].split(",")[1].replace(/\s+/g, '') + upperRange} MMR\n`;
-				}
-				return msg.channel.send(updaterankmsg);
-			} catch (error) {
-				return msg.channel.send("There are no rankings to view");
-			}
-		}
+		// if (msg.content.startsWith("!viewrankings")) {
+		// 	if (!canUpdateRankings && msg.member.id != '222356623392243712') return;
+		// 	try {
+		// 		let rankData = fs.readFileSync(__dirname + "/rankings.txt", "utf-8");
+		// 		rankData = rankData.split("\n");
+		// 		let updaterankmsg = "";
+		// 		for (let i = 0; i < rankData.length; i++) {
+		// 			let upperRange = i == rankData.length-1 || Number(rankData[i+1].split(",")[1]) < Number(rankData[i].split(",")[1]) ? "+" : " - " + (Number(rankData[i+1].split(",")[1].replace(/\s+/g, ''))-1).toString();
+		// 			updaterankmsg += `${rankData[i].split(",")[0]} => ${rankData[i].split(",")[1].replace(/\s+/g, '') + upperRange} MMR\n`;
+		// 		}
+		// 		return msg.channel.send(updaterankmsg);
+		// 	} catch (error) {
+		// 		return msg.channel.send("There are no rankings to view");
+		// 	}
+		// }
 
-		if (msg.content.startsWith("!editrankings") || msg.content.startsWith("!deleterankings") || msg.content.startsWith("!insertrankings")) {
-			let args = contentForRankings.replace("!editrankings", "").replace("!deleterankings", "").replace("!insertrankings", "");
-			args = args.split(",");
-			for (let arg in args) {
-				while (args[arg][0] == " ") args[arg] = args[arg].substring(1);
-			}
-			let updaterankmsg = "";
-			let rankData = fs.readFileSync(__dirname + "/rankings.txt", "utf-8");
-			rankData = rankData.split("\n");
-			let ranks = [], mmrs = [];
-			for (let rank in rankData) {
-				if (rankData[rank].replace(/\s+/g, '') != "") {
-					ranks.push(rankData[rank].split(",")[0]);
-					mmrs.push(rankData[rank].split(",")[1]);
-				}
-			}
-			if (msg.content.startsWith("!editrankings") || msg.content.startsWith("!insertrankings")) {
-				let insertIndex = false;
-				if (msg.content.startsWith("!insertrankings")) {
-					insertIndex = ranks.find(element => tran_str(element) == tran_str(args[0]));
-					if (!insertIndex) {
-						updaterankmsg += `Unable to find role "${args[0]}"\n`;
-						return msg.channel.send(updaterankmsg);
-					} else {
-						args.shift();
-					}
-				}
-				for (let i = 0; i < args.length; i++) {
-					if (i%2==0) {
-						let roleIndex = ranks.find(element => tran_str(element) == tran_str(args[i]));
-						if (!roleIndex) {
-							if (!isNaN(args[i+1])) {
-								updaterankmsg += `Ranking "${args[i]}" has been added with MMR threshold ${args[i+1]}\n`;
-								ranks.splice(insertIndex ? ranks.indexOf(insertIndex)+1 : ranks.length, 0, args[i]);
-								mmrs.splice(insertIndex ? ranks.indexOf(insertIndex)+1 : ranks.length, 0, args[i+1]);
-							} else {
-								updaterankmsg += `Ranking "${args[i]}" does not have a valid mmr. This has not been added\n`;
-							}
-						} else {
-							if (!isNaN(args[i+1])) {
-								mmrs[ranks.indexOf(roleIndex)] = args[i+1];
-								updaterankmsg += `The MMR threshold of "${roleIndex}" has been changed to ${args[i+1]}\n`;
-							} else {
-								updaterankmsg += `"${args[i+1]}" is not a valid MMR. This has not been changed\n`;
-							}
-						}
-					}
-				}
-			} else {
-				for (let i = 0; i < args.length; i++) {
-					let roleIndex = ranks.find(element => tran_str(element) == tran_str(args[i]));
-					if (!roleIndex) {
-						updaterankmsg += `Unable to find/delete "${args[i]}" ranking\n`;
-					} else {
-						updaterankmsg += `"${roleIndex}" ranking has been deleted\n`;
-						ranks.splice(roleIndex,1);
-						mmrs.splice(roleIndex,1);
-					}
-				}
-			}
+		// if (msg.content.startsWith("!editrankings") || msg.content.startsWith("!deleterankings") || msg.content.startsWith("!insertrankings")) {
+		// 	if (!canUpdateRankings && msg.member.id != '222356623392243712') return;
+		// 	let args = contentForRankings.replace("!editrankings", "").replace("!deleterankings", "").replace("!insertrankings", "");
+		// 	args = args.split(",");
+		// 	for (let arg in args) {
+		// 		while (args[arg][0] == " ") args[arg] = args[arg].substring(1);
+		// 	}
+		// 	let updaterankmsg = "";
+		// 	let rankData = fs.readFileSync(__dirname + "/rankings.txt", "utf-8");
+		// 	rankData = rankData.split("\n");
+		// 	let ranks = [], mmrs = [];
+		// 	for (let rank in rankData) {
+		// 		if (rankData[rank].replace(/\s+/g, '') != "") {
+		// 			ranks.push(rankData[rank].split(",")[0]);
+		// 			mmrs.push(rankData[rank].split(",")[1]);
+		// 		}
+		// 	}
+		// 	if (msg.content.startsWith("!editrankings") || msg.content.startsWith("!insertrankings")) {
+		// 		let insertIndex = false;
+		// 		if (msg.content.startsWith("!insertrankings")) {
+		// 			insertIndex = ranks.find(element => tran_str(element) == tran_str(args[0]));
+		// 			if (!insertIndex) {
+		// 				updaterankmsg += `Unable to find role "${args[0]}"\n`;
+		// 				return msg.channel.send(updaterankmsg);
+		// 			} else {
+		// 				args.shift();
+		// 			}
+		// 		}
+		// 		for (let i = 0; i < args.length; i++) {
+		// 			if (i%2==0) {
+		// 				let roleIndex = ranks.find(element => tran_str(element) == tran_str(args[i]));
+		// 				if (!roleIndex) {
+		// 					if (!isNaN(args[i+1])) {
+		// 						updaterankmsg += `Ranking "${args[i]}" has been added with MMR threshold ${args[i+1]}\n`;
+		// 						ranks.splice(insertIndex ? ranks.indexOf(insertIndex)+1 : ranks.length, 0, args[i]);
+		// 						mmrs.splice(insertIndex ? ranks.indexOf(insertIndex)+1 : ranks.length, 0, args[i+1]);
+		// 					} else {
+		// 						updaterankmsg += `Ranking "${args[i]}" does not have a valid mmr. This has not been added\n`;
+		// 					}
+		// 				} else {
+		// 					if (!isNaN(args[i+1])) {
+		// 						mmrs[ranks.indexOf(roleIndex)] = args[i+1];
+		// 						updaterankmsg += `The MMR threshold of "${roleIndex}" has been changed to ${args[i+1]}\n`;
+		// 					} else {
+		// 						updaterankmsg += `"${args[i+1]}" is not a valid MMR. This has not been changed\n`;
+		// 					}
+		// 				}
+		// 			}
+		// 		}
+		// 	} else {
+		// 		for (let i = 0; i < args.length; i++) {
+		// 			let roleIndex = ranks.find(element => tran_str(element) == tran_str(args[i]));
+		// 			if (!roleIndex) {
+		// 				updaterankmsg += `Unable to find/delete "${args[i]}" ranking\n`;
+		// 			} else {
+		// 				updaterankmsg += `"${roleIndex}" ranking has been deleted\n`;
+		// 				ranks.splice(roleIndex,1);
+		// 				mmrs.splice(roleIndex,1);
+		// 			}
+		// 		}
+		// 	}
 
-			rankData = "";
-			for (let i = 0; i < ranks.length; i++) {
-				rankData += ranks[i] + "," + mmrs[i] + (i == ranks.length-1 ? "" : "\n");
-			}
-			fs.writeFileSync(__dirname + "/rankings.txt", rankData);
-			populateRolesRanges();
-			return msg.channel.send(updaterankmsg);
-		}
+		// 	rankData = "";
+		// 	for (let i = 0; i < ranks.length; i++) {
+		// 		rankData += ranks[i] + "," + mmrs[i] + (i == ranks.length-1 ? "" : "\n");
+		// 	}
+		// 	fs.writeFileSync(__dirname + "/rankings.txt", rankData);
+		// 	populateRolesRanges();
+		// 	return msg.channel.send(updaterankmsg);
+		// }
 
 		const commandParams = msg.content.split(/\s+/);
 		msg.delete();
@@ -487,6 +551,7 @@ client.on('message', async msg => {
 
 		const specialRoles = ["Boss", "Custom Track Arbitrator", "Lower Tier CT Arbitrator", "Higher Tier CT Arbitrator", "LT RT Reporter", "LT CT Reporter", "Lower Tier RT Arbitrator", "Higher Tier RT Arbitrator", "Developer"];
 		const modeRoles = (globalMode === "rt") ? rtRoles : ctRoles;
+		const LRModeRoles = (globalMode === "rt") ? rtLRRoles : ctLRRoles;
 		
 		if (commandParams.length > 2) {
 			for (i = 0; i < commandParams.length; i++) {
@@ -516,41 +581,41 @@ client.on('message', async msg => {
 			if (!result) return msg.channel.send("Unable to find players with the name(s) " + resultParamsArray.join(","));
 			for (i = 0; i < commandParams.length; i++) {
 				let checking = true;
-				for (j = 0; j < result.length; j++) {
-					if (tran_str(commandParams[i]) === tran_str(result[j]))
+				for (j = 0; j < result[0].length; j++) {
+					if (tran_str(commandParams[i]) === tran_str(result[0][j]))
 						checking = false;
 				}
 				if (checking && i !== 0 && commandParams[i] !== "np")
 					msg.channel.send("Unable to find server member with the name " + commandParams[i]);
 			}
-			for (i = 0; i < result.length; i++) {
+			for (i = 0; i < result[0].length; i++) {
 				if (i % 2 === 0) {
 					//extra logic for additional players
-					let currentPlayer = msg.guild.members.cache.find(member => tran_str(member.displayName) === tran_str(result[i]));
+					let currentPlayer = msg.guild.members.cache.find(member => tran_str(member.displayName) === tran_str(result[0][i]));
 					let currentPlayerCollection, collectionNames = [];
 					if (currentPlayer === undefined) {
-						msg.channel.send("Unable to find server member with the name " + result[i]);
+						msg.channel.send("Unable to find server member with the name " + result[0][i]);
 						continue;
 					}
 					for (j = 0; j < modeRoles.length; j++) {
-						currentPlayer = await msg.guild.members.cache.find(member => tran_str(member.displayName) === tran_str(result[i]) && member.roles.cache.some(role => role.name === modeRoles[j]) && !member.roles.cache.some(role => role.name === "Unverified"));
+						currentPlayer = await msg.guild.members.cache.find(member => tran_str(member.displayName) === tran_str(result[0][i]) && member.roles.cache.some(role => role.name === modeRoles[j]) && !member.roles.cache.some(role => role.name === "Unverified"));
 						if (currentPlayer !== undefined)
 							break;
 					}
 					for (j = 0; j < modeRoles.length; j++) {
-						currentPlayerCollection = await msg.guild.members.cache.filter(member => tran_str(member.displayName) === tran_str(result[i]) && member.roles.cache.some(role => role.name === modeRoles[j]) && !member.roles.cache.some(role => role.name === "Unverified"));
+						currentPlayerCollection = await msg.guild.members.cache.filter(member => tran_str(member.displayName) === tran_str(result[0][i]) && member.roles.cache.some(role => role.name === modeRoles[j]) && !member.roles.cache.some(role => role.name === "Unverified"));
 						if (currentPlayerCollection !== undefined)
 							currentPlayerCollection.each(member => collectionNames.push(member.user.tag));
 					}
 					if (currentPlayer === undefined) {
-						msg.channel.send(result[i] + " does not have a rank role yet.");
+						msg.channel.send(result[0][i] + " does not have a rank role yet.");
 						continue;
 					}
 					let hasDupRoles = checkForDuplicateRoles(modeRoles, currentPlayer);
 					collectionNames = removeDuplicates(collectionNames);
 					if (collectionNames.length > 1)
 						msg.channel.send("Multiple players were found with the same display name: " + collectionNames.join(" & "));
-					let serverRole = await msg.guild.roles.cache.find(role => role.name == result[i+1]);
+					let serverRole = await msg.guild.roles.cache.find(role => role.name == result[0][i+1]);
 					if (!currentPlayer.roles.cache.some(role => role.name.toLowerCase() === serverRole.name.toLowerCase())) {
 						for (j = 0; j < modeRoles.length; j++) {
 							if (currentPlayer.roles.cache.some(role => role.name == modeRoles[j]))
@@ -558,9 +623,54 @@ client.on('message', async msg => {
 						}
 						let fromPenText = (commandParams[i+2] === "np") ? "" : "(from pen)";
 						await currentPlayer.roles.add(serverRole.id);
-						mentionPlayers += `<@${currentPlayer.id}> ` + emoji(result[i+1].replace(/[I]/g, '').replace("RT ", '').replace('CT ', ''), msg);
+						mentionPlayers += `<@${currentPlayer.id}> You are now in ${result[0][i+1]}`;
 						//mentionPlayers += `<@${currentPlayer.id}> ` + emoji(result[i+1].replace(/\s/g, '').replace(/[I]/g, '').replace("RT", '').replace('CT', ''), msg);
-						mentionPlayers += result[i+1].includes("II") ? " II" : result[i+1].includes("I") && !result[i+1].includes("Iron") ? " I" : "";
+						mentionPlayers += result[0][i+1].includes("II") ? " II" : result[0][i+1].includes("I") && !result[0][i+1].includes("Iron") ? " I" : "";
+						mentionPlayers += ` ${fromPenText}\n`;
+					}
+					if (hasDupRoles)
+						msg.channel.send(`${currentPlayer.displayName} has multiple ${globalMode.toUpperCase()} roles but should be ${serverRole.name}. Check if they promoted/demoted to a temprole`);
+				}
+			}
+
+			for (i = 0; i < result[1].length; i++) {
+				if (i % 2 === 0) {
+					//extra logic for additional players
+					let currentPlayer = msg.guild.members.cache.find(member => tran_str(member.displayName) === tran_str(result[1][i]));
+					let currentPlayerCollection, collectionNames = [];
+					if (currentPlayer === undefined) {
+						msg.channel.send("Unable to find server member with the name " + result[1][i]);
+						continue;
+					}
+					for (j = 0; j < LRModeRoles.length; j++) {
+						currentPlayer = await msg.guild.members.cache.find(member => tran_str(member.displayName) === tran_str(result[1][i]) && member.roles.cache.some(role => role.name === LRModeRoles[j]) && !member.roles.cache.some(role => role.name === "Unverified"));
+						if (currentPlayer !== undefined)
+							break;
+					}
+					for (j = 0; j < LRModeRoles.length; j++) {
+						currentPlayerCollection = await msg.guild.members.cache.filter(member => tran_str(member.displayName) === tran_str(result[1][i]) && member.roles.cache.some(role => role.name === LRModeRoles[j]) && !member.roles.cache.some(role => role.name === "Unverified"));
+						if (currentPlayerCollection !== undefined)
+							currentPlayerCollection.each(member => collectionNames.push(member.user.tag));
+					}
+					if (currentPlayer === undefined) {
+						msg.channel.send(result[1][i] + " does not have a class role yet.");
+						continue;
+					}
+					let hasDupRoles = checkForDuplicateRoles(LRModeRoles, currentPlayer);
+					collectionNames = removeDuplicates(collectionNames);
+					if (collectionNames.length > 1)
+						msg.channel.send("Multiple players were found with the same display name: " + collectionNames.join(" & "));
+					let serverRole = await msg.guild.roles.cache.find(role => role.name == result[1][i+1]);
+					if (!currentPlayer.roles.cache.some(role => role.name.toLowerCase() === serverRole.name.toLowerCase())) {
+						for (j = 0; j < LRModeRoles.length; j++) {
+							if (currentPlayer.roles.cache.some(role => role.name == LRModeRoles[j]))
+								await currentPlayer.roles.remove(currentPlayer.roles.cache.find(role => role.name.toLowerCase() === LRModeRoles[j].toLowerCase()));
+						}
+						let fromPenText = (commandParams[i+2] === "np") ? "" : "(from pen)";
+						await currentPlayer.roles.add(serverRole.id);
+						mentionPlayers += `<@${currentPlayer.id}> ` + emoji(result[1][i+1].replace(/[I]/g, '').replace("RT ", '').replace('CT ', ''), msg);
+						//mentionPlayers += `<@${currentPlayer.id}> ` + emoji(result[i+1].replace(/\s/g, '').replace(/[I]/g, '').replace("RT", '').replace('CT', ''), msg);
+						mentionPlayers += result[1][i+1].includes("II") ? " II" : result[1][i+1].includes("I") && !result[1][i+1].includes("Iron") ? " I" : "";
 						mentionPlayers += ` ${fromPenText}\n`;
 					}
 					if (hasDupRoles)
@@ -569,8 +679,8 @@ client.on('message', async msg => {
 			}
 		} else {
 			if (commandParams.length > 2) return msg.channel.send("Error. Cannot do multiple events at a time");
-			if (result !== ',') {
-				let resultarray = result.split(",");
+			if (result[0] !== ',') {
+				let resultarray = result[0].split(",");
 				const ranks = resultarray.slice(0, resultarray.length/2);
 				const players = resultarray.slice(resultarray.length/2, resultarray.length);
 				for (i = 0; i < players.length; i++) {
@@ -610,7 +720,7 @@ client.on('message', async msg => {
 					if (collectionNames.length > 1)
 						msg.channel.send("2 players were found with the same display name: " + collectionNames.join(" & "));
 					//...
-					mentionPlayers += `<@${currentPlayer.id}> ` + emoji(ranks[i].replace(/[I]/g, '').replace("RT ", '').replace('CT ', ''), msg);
+					mentionPlayers += `<@${currentPlayer.id}> You are now in ${ranks[i]}`;
 					//mentionPlayers += `<@${currentPlayer.id}> ` + emoji(ranks[i].replace(/\s/g, '').replace(/[I]/g, '').replace("RT", '').replace('CT', ''), msg);
 					mentionPlayers += ranks[i].includes("II") ? " II\n" : ranks[i].includes("I") && !ranks[i].includes("Iron") ? " I\n" : "\n";
 					let serverRole = await msg.guild.roles.cache.find(role => role.name.toLowerCase() === ranks[i].toLowerCase());
@@ -619,6 +729,65 @@ client.on('message', async msg => {
 						if (modeRoles[j] !== specialRole) {
 							if (currentPlayer.roles.cache.some(role => role.name === modeRoles[j]) && !hasDupRoles)
 								await currentPlayer.roles.remove(currentPlayer.roles.cache.find(role => role.name.toLowerCase() === modeRoles[j].toLowerCase()));
+						}
+					}
+					if (!hasSpecialRole)
+						await currentPlayer.roles.add(serverRole.id);
+					if (hasDupRoles)
+						msg.channel.send(`${currentPlayer.displayName} has multiple ${globalMode.toUpperCase()} roles. Please check if they promoted/demoted to a temprole`);
+				}
+			}
+
+			if (result[1] !== ',') {
+				let resultarray = result[1].split(",");
+				const ranks = resultarray.slice(0, resultarray.length/2);
+				const players = resultarray.slice(resultarray.length/2, resultarray.length);
+				for (i = 0; i < players.length; i++) {
+					let hasSpecialRole = false;
+					let currentPlayer = await msg.guild.members.cache.find(member => tran_str(member.displayName) === tran_str(players[i]));
+					let currentPlayerCollection, collectionNames = [];
+					if (currentPlayer === undefined) {
+						msg.channel.send("Unable to find server member with the name " + players[i]);
+						continue;
+					}
+					//...
+					for (j = 0; j < LRModeRoles.length; j++) {
+						currentPlayer = await msg.guild.members.cache.find(member => tran_str(member.displayName) === tran_str(players[i]) && member.roles.cache.some(role => role.name === LRModeRoles[j]) && !member.roles.cache.some(role => role.name === "Unverified"));
+						if (currentPlayer !== undefined)
+							break;
+					}
+					for (j = 0; j < LRModeRoles.length; j++) {
+						currentPlayerCollection = await msg.guild.members.cache.filter(member => tran_str(member.displayName) === tran_str(players[i]) && member.roles.cache.some(role => role.name == LRModeRoles[j]) && !member.roles.cache.some(role => role.name === "Unverified"));
+						if (currentPlayerCollection !== undefined)
+							currentPlayerCollection.each(member => collectionNames.push(member.user.tag));
+					}
+					if (currentPlayer === undefined) {
+						for (j = 0; j < specialRoles.length; j++) {
+							currentPlayer = await msg.guild.members.cache.find(member => tran_str(member.displayName) === tran_str(players[i]) && member.roles.cache.some(role => role.name == specialRoles[j]) && !member.roles.cache.some(role => role.name === "Unverified"));
+							if (currentPlayer !== undefined) {
+								hasSpecialRole = true;
+								break;
+							}
+						}
+					}
+					if (currentPlayer === undefined) {
+						msg.channel.send(players[i] + " does not have a rank role yet.");
+						continue;
+					}
+					let hasDupRoles = checkForDuplicateRoles(LRModeRoles, currentPlayer);
+					collectionNames = removeDuplicates(collectionNames);
+					if (collectionNames.length > 1)
+						msg.channel.send("2 players were found with the same display name: " + collectionNames.join(" & "));
+					//...
+					mentionPlayers += `<@${currentPlayer.id}> ` + emoji(ranks[i].replace(/[I]/g, '').replace("RT ", '').replace('CT ', ''), msg);
+					//mentionPlayers += `<@${currentPlayer.id}> ` + emoji(ranks[i].replace(/\s/g, '').replace(/[I]/g, '').replace("RT", '').replace('CT', ''), msg);
+					mentionPlayers += ranks[i].includes("II") ? " II\n" : ranks[i].includes("I") && !ranks[i].includes("Iron") ? " I\n" : "\n";
+					let serverRole = await msg.guild.roles.cache.find(role => role.name.toLowerCase() === ranks[i].toLowerCase());
+					const specialRole = LRModeRoles[LRModeRoles.indexOf(ranks[i])];
+					for (j = 0; j < LRModeRoles.length; j++) {
+						if (LRModeRoles[j] !== specialRole) {
+							if (currentPlayer.roles.cache.some(role => role.name === LRModeRoles[j]) && !hasDupRoles)
+								await currentPlayer.roles.remove(currentPlayer.roles.cache.find(role => role.name.toLowerCase() === LRModeRoles[j].toLowerCase()));
 						}
 					}
 					if (!hasSpecialRole)
