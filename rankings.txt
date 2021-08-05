@@ -1,4 +1,4 @@
-RT Class F,0
+RT Class F,-Infinity
 RT Class E,1000
 RT Class D,2500
 RT Class C,4000
@@ -6,7 +6,7 @@ RT Class B,4750
 RT Class A,5500
 RT Class S,7000
 RT Class X,8500
-CT Class F,0
+CT Class F,-Infinity
 CT Class E,1000
 CT Class D,2250
 CT Class C,3250
