@@ -708,7 +708,7 @@ client.on('message', async msg => {
 							currentPlayerCollection.each(member => collectionNames.push(member.user.tag));
 					}
 					if (currentPlayer === undefined) {
-						msg.channel.send(result[0][i] + " does not have a rank role yet.");
+						msg.channel.send(result[0][i] + " does not have a class role yet.");
 						continue;
 					}
 					let hasDupRoles = checkForDuplicateRoles(modeRoles, currentPlayer);
@@ -812,7 +812,7 @@ client.on('message', async msg => {
 						}
 					}
 					if (currentPlayer === undefined) {
-						msg.channel.send(players[i] + " does not have a rank role yet.");
+						msg.channel.send(players[i] + " does not have a class role yet.");
 						continue;
 					}
 					let hasDupRoles = checkForDuplicateRoles(modeRoles, currentPlayer);
