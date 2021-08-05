@@ -14,7 +14,7 @@ CT Silver,2250
 CT Gold,3500
 CT Platinum,4750
 CT Emerald,6250
-CT Ruby,7750
+CT Ruby,7500
 CT Diamond,9000
 CT Master,11000
 CT Grandmaster,12000
