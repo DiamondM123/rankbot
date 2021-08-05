@@ -506,7 +506,7 @@ client.on('message', async msg => {
 							if (!isNaN(args[i+1])) {
 								updaterankmsg += `Ranking "${args[i]}" has been added with MMR threshold ${args[i+1]}\n`;
 								ranks.splice(insertIndex ? ranks.indexOf(insertIndex) : ranks.length, 0, args[i]);
-								mmrs.splice(insertIndex ? ranks.indexOf(insertIndex)-1 : ranks.length, 0, args[i+1]);
+								mmrs.splice(insertIndex ? ranks.indexOf(insertIndex)-1 : ranks.length-1, 0, args[i+1]);
 							} else {
 								updaterankmsg += `Ranking "${args[i]}" does not have a valid MMR. This has not been added\n`;
 							}
@@ -563,7 +563,7 @@ client.on('message', async msg => {
 			}
 			if (msg.content.startsWith("!editlrrankings") || msg.content.startsWith("!insertlrrankings")) {
 				let insertIndex = false;
-				if (msg.content.startsWith("!insertrankings")) {
+				if (msg.content.startsWith("!insertlrrankings")) {
 					insertIndex = ranks.find(element => tran_str(element) == tran_str(args[0]));
 					if (!insertIndex) {
 						updaterankmsg += `Unable to find role "${args[0]}"\n`;
@@ -578,8 +578,8 @@ client.on('message', async msg => {
 						if (!roleIndex) {
 							if (!isNaN(args[i+1])) {
 								updaterankmsg += `Ranking "${args[i]}" has been added with LR threshold ${args[i+1]}\n`;
-								ranks.splice(insertIndex ? ranks.indexOf(insertIndex)+1 : ranks.length, 0, args[i]);
-								mmrs.splice(insertIndex ? ranks.indexOf(insertIndex)+1 : ranks.length, 0, args[i+1]);
+								ranks.splice(insertIndex ? ranks.indexOf(insertIndex) : ranks.length, 0, args[i]);
+								mmrs.splice(insertIndex ? ranks.indexOf(insertIndex)-1 : ranks.length-1, 0, args[i+1]);
 							} else {
 								updaterankmsg += `Ranking "${args[i]}" does not have a valid LR. This has not been added\n`;
 							}
