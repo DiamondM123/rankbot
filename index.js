@@ -753,7 +753,7 @@ client.on('message', async msg => {
 							currentPlayerCollection.each(member => collectionNames.push(member.user.tag));
 					}
 					if (currentPlayer === undefined) {
-						msg.channel.send(result[1][i] + " does not have a class role yet.");
+						msg.channel.send(result[1][i] + " does not have a rank role yet.");
 						continue;
 					}
 					let hasDupRoles = checkForDuplicateRoles(LRModeRoles, currentPlayer);
