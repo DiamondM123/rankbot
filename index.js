@@ -439,11 +439,11 @@ client.on('message', async msg => {
 				let updaterankmsg = "";
 				for (let i = 0; i < rankData.length; i++) {
 					if (Number(rankData[i].split(",")[1]) == -Infinity) {
-						updaterankmsg += `${rankData[i].split(",")[0]} => ` + "<" + (Number(rankData[i+1].split(",")[1].replace(/\s+/g, ''))).toString() + " MMR\n";
+						updaterankmsg += `${rankData[i].split(",")[0]} —> ` + "<" + (Number(rankData[i+1].split(",")[1].replace(/\s+/g, ''))).toString() + " MMR\n";
 						continue;
 					}
 					let upperRange = i == rankData.length-1 || Number(rankData[i+1].split(",")[1]) < Number(rankData[i].split(",")[1]) ? "+" : " - " + (Number(rankData[i+1].split(",")[1].replace(/\s+/g, ''))-1).toString();
-					updaterankmsg += `${rankData[i].split(",")[0]} => ${rankData[i].split(",")[1].replace(/\s+/g, '') + upperRange} MMR\n`;
+					updaterankmsg += `${rankData[i].split(",")[0]} —> ${rankData[i].split(",")[1].replace(/\s+/g, '') + upperRange} MMR\n`;
 				}
 				return msg.channel.send(updaterankmsg);
 			} catch (error) {
@@ -459,11 +459,11 @@ client.on('message', async msg => {
 				let updaterankmsg = "";
 				for (let i = 0; i < rankData.length; i++) {
 					if (Number(rankData[i].split(",")[1]) == -Infinity) {
-						updaterankmsg += `${rankData[i].split(",")[0]} => ` + "<" + (Number(rankData[i+1].split(",")[1].replace(/\s+/g, ''))).toString() + " LR\n";
+						updaterankmsg += `${rankData[i].split(",")[0]} —> ` + "<" + (Number(rankData[i+1].split(",")[1].replace(/\s+/g, ''))).toString() + " LR\n";
 						continue;
 					}
 					let upperRange = i == rankData.length-1 || Number(rankData[i+1].split(",")[1]) < Number(rankData[i].split(",")[1]) ? "+" : " - " + (Number(rankData[i+1].split(",")[1].replace(/\s+/g, ''))-1).toString();
-					updaterankmsg += `${rankData[i].split(",")[0]} => ${rankData[i].split(",")[1].replace(/\s+/g, '') + upperRange} LR\n`;
+					updaterankmsg += `${rankData[i].split(",")[0]} —> ${rankData[i].split(",")[1].replace(/\s+/g, '') + upperRange} LR\n`;
 				}
 				return msg.channel.send(updaterankmsg);
 			} catch (error) {
