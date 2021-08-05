@@ -41,24 +41,24 @@ function populateRolesRanges() {
 	for (let i = 0; i < rankData.length; i++) {
 		if (rankData[i].startsWith("RT")) {
 			rtRoles.push(rankData[i].split(",")[0]);
-			if (Number(rankData[i].split(",")[1]) != 0)
+			if (Number(rankData[i].split(",")[1]) > 0)
 				rtRanges.push(Number(rankData[i].split(",")[1]));
 		}
 		if (rankData[i].startsWith("CT")) {
 			ctRoles.push(rankData[i].split(",")[0]);
-			if (Number(rankData[i].split(",")[1]) != 0)
+			if (Number(rankData[i].split(",")[1]) > 0)
 				ctRanges.push(Number(rankData[i].split(",")[1]));
 		}
 	}
 	for (let i = 0; i < lrRankData.length; i++) {
 		if (lrRankData[i].startsWith("RT")) {
 			rtLRRoles.push(lrRankData[i].split(",")[0]);
-			if (Number(lrRankData[i].split(",")[1]) != 0)
+			if (Number(lrRankData[i].split(",")[1]) > 0)
 				rtLRRanges.push(Number(lrRankData[i].split(",")[1]));
 		}
 		if (lrRankData[i].startsWith("CT")) {
 			ctLRRoles.push(lrRankData[i].split(",")[0]);
-			if (Number(lrRankData[i].split(",")[1]) != 0)
+			if (Number(lrRankData[i].split(",")[1]) > 0)
 				ctLRRanges.push(Number(lrRankData[i].split(",")[1]));
 		}
 	}
@@ -438,6 +438,10 @@ client.on('message', async msg => {
 				rankData = rankData.split("\n");
 				let updaterankmsg = "";
 				for (let i = 0; i < rankData.length; i++) {
+					if (Number(rankData[i].split(",")[1]) == -Infinity) {
+						updaterankmsg += `${rankData[i].split(",")[0]} => ` + "<" + (Number(rankData[i+1].split(",")[1].replace(/\s+/g, ''))).toString() + " MMR\n";
+						continue;
+					}
 					let upperRange = i == rankData.length-1 || Number(rankData[i+1].split(",")[1]) < Number(rankData[i].split(",")[1]) ? "+" : " - " + (Number(rankData[i+1].split(",")[1].replace(/\s+/g, ''))-1).toString();
 					updaterankmsg += `${rankData[i].split(",")[0]} => ${rankData[i].split(",")[1].replace(/\s+/g, '') + upperRange} MMR\n`;
 				}
@@ -454,6 +458,10 @@ client.on('message', async msg => {
 				rankData = rankData.split("\n");
 				let updaterankmsg = "";
 				for (let i = 0; i < rankData.length; i++) {
+					if (Number(rankData[i].split(",")[1]) == -Infinity) {
+						updaterankmsg += `${rankData[i].split(",")[0]} => ` + "<" + (Number(rankData[i+1].split(",")[1].replace(/\s+/g, ''))).toString() + " LR\n";
+						continue;
+					}
 					let upperRange = i == rankData.length-1 || Number(rankData[i+1].split(",")[1]) < Number(rankData[i].split(",")[1]) ? "+" : " - " + (Number(rankData[i+1].split(",")[1].replace(/\s+/g, ''))-1).toString();
 					updaterankmsg += `${rankData[i].split(",")[0]} => ${rankData[i].split(",")[1].replace(/\s+/g, '') + upperRange} LR\n`;
 				}
@@ -497,8 +505,8 @@ client.on('message', async msg => {
 						if (!roleIndex) {
 							if (!isNaN(args[i+1])) {
 								updaterankmsg += `Ranking "${args[i]}" has been added with MMR threshold ${args[i+1]}\n`;
-								ranks.splice(insertIndex ? ranks.indexOf(insertIndex)+1 : ranks.length, 0, args[i]);
-								mmrs.splice(insertIndex ? ranks.indexOf(insertIndex)+1 : ranks.length, 0, args[i+1]);
+								ranks.splice(insertIndex ? ranks.indexOf(insertIndex) : ranks.length, 0, args[i]);
+								mmrs.splice(insertIndex ? ranks.indexOf(insertIndex)-1 : ranks.length, 0, args[i+1]);
 							} else {
 								updaterankmsg += `Ranking "${args[i]}" does not have a valid MMR. This has not been added\n`;
 							}
@@ -519,8 +527,9 @@ client.on('message', async msg => {
 						updaterankmsg += `Unable to find/delete "${args[i]}" ranking\n`;
 					} else {
 						updaterankmsg += `"${roleIndex}" ranking has been deleted\n`;
-						ranks.splice(roleIndex,1);
-						mmrs.splice(roleIndex,1);
+						let someIndex = ranks.indexOf(roleIndex);
+						ranks.splice(someIndex,1);
+						mmrs.splice(someIndex,1);
 					}
 				}
 			}
