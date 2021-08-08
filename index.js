@@ -100,10 +100,15 @@ const tran_str = (inp) => {
 }
 
 const emoji = (inp, msg_o) => {
-	if (inp === 'ron') inp = 'Iron';
-	let theEmoji = msg_o.guild.emojis.cache.find(emoji => emoji.name == inp);
-	//console.log("<:" + inp + ":" + theEmoji.id.toString() + ">");
-	return ("<:" + inp + ":" + theEmoji.id.toString() + ">");
+	try {
+		if (inp === 'ron') inp = 'Iron';
+		let theEmoji = msg_o.guild.emojis.cache.find(emoji => emoji.name == inp);
+		//console.log("<:" + inp + ":" + theEmoji.id.toString() + ">");
+		return ("<:" + inp + ":" + theEmoji.id.toString() + ">");
+	} catch (error) {
+		console.error("ERROR:");
+		console.error(error);
+	}
 }
 
 async function getCurrentLoungeDate() {
@@ -378,7 +383,7 @@ client.on('message', async msg => {
 		// let hahaha = await downloadPage("https://mariokartboards.com/lounge/json/player.php?type=rt&name=Fox,kenchan,Killua,neuro,Shaun,Jeff,Kaspie,barney,meraki,pachu,Quinn,Leops,Mikey,jun,Sane,rusoX,Az,EmilP,Batcake,Taz,Sora,Dane,lo,Solar,Goober");
 		// hahaha = JSON.parse(hahaha);
 		// console.log(hahaha);
-		const commandList = ["!rt", "!ct", "!dp", "!top50", "!place", "!viewrankings", "!editrankings", "!deleterankings", "!insertrankings", "!viewlrrankings", "!editlrrankings", "!deletelrrankings", "!insertlrrankings"];
+		const commandList = ["!rt", "!ct", "!dp", "!top50", "!assign", "!viewrankings", "!editrankings", "!deleterankings", "!insertrankings", "!viewlrrankings", "!editlrrankings", "!deletelrrankings", "!insertlrrankings"];
 		let go_on = false;
 		for (command in commandList) {
 			if (msg.content.toLowerCase().split(/\s+/)[0] == commandList[command]) go_on = true;
@@ -618,9 +623,12 @@ client.on('message', async msg => {
 		const commandParams = msg.content.split(/\s+/);
 		msg.delete();
 
-		if (commandParams[0] == "!place") {
+		if (commandParams[0] == "!assign") {
 			if (commandParams.length < 3) return msg.channel.send("One or more arguments missing");
-			let currentPlayer = await msg.guild.members.cache.find(member => member.roles.cache.some(role => role.id == (commandParams[2].startsWith("rt") ? '723753340063842345' : '723753312331104317')) && tran_str(member.displayName) == tran_str(commandParams[1]));
+			let currentPlayer;
+			if (!msg.mentions.members.first()) {
+				currentPlayer = await msg.guild.members.cache.find(member => member.roles.cache.some(role => role.id == (commandParams[2].startsWith("rt") ? '723753340063842345' : '723753312331104317')) && tran_str(member.displayName) == tran_str(commandParams[1]));
+			} else currentPlayer = msg.mentions.members.first();
 			if (currentPlayer == undefined) {
 				msg.channel.send("Unable to find server member with a placement role with the name " + commandParams[1]);
 				return;
@@ -630,13 +638,21 @@ client.on('message', async msg => {
 				if (commandParams[i] != undefined) roleName += commandParams[i];
 				else break;
 			}
-			let serverRole = await msg.guild.roles.cache.find(role => tran_str(role.name) == tran_str(roleName));
-			if (serverRole == undefined) return msg.channel.send("Unable to find server role with the name " + roleName);
-			let placeEmoji = emoji(roleName.substring(2).capitalize(), msg);
-
+			let outMsg = `<@${currentPlayer.id}> `;
+			let roles = roleName.split(",");
+			for (let i = 0; i < roles.length; i++) {
+				let placeEmoji = false;
+				if (i == 0) {
+					let placeEmoji = emoji(roles[i].substring(2).capitalize(), msg);
+				}
+				let serverRole = await msg.guild.roles.cache.find(role => tran_str(role.name) == tran_str(roles[i]));
+				if (serverRole == undefined) return msg.channel.send("Unable to find server role with the name " + roles[i]);
+				outMsg += (placeEmoji ? placeEmoji : serverRole.name) + (i == roles.length-1 ? "" : i == roles.length-2 ? " & " : ", ");
+				await currentPlayer.roles.add(serverRole.id);
+			}
+			outMsg += " Placement" + (roles.length == 1 ? "" : "s");
 			await currentPlayer.roles.remove(commandParams[2].startsWith("rt") ? '723753340063842345' : '723753312331104317');
-			await currentPlayer.roles.add(serverRole.id);
-			return msg.channel.send(`<@${currentPlayer.id}> ${placeEmoji} Placement`);
+			return msg.channel.send(outMsg);
 		}
 
 		// START
