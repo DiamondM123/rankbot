@@ -641,10 +641,7 @@ client.on('message', async msg => {
 			let outMsg = `<@${currentPlayer.id}> `;
 			let roles = roleName.split(",");
 			for (let i = 0; i < roles.length; i++) {
-				let placeEmoji = false;
-				if (i == 0) {
-					placeEmoji = emoji(roles[i].substring(2).capitalize(), msg);
-				}
+				let placeEmoji = i == 0 ? emoji(roles[i].substring(2).capitalize(), msg) : false;
 				let serverRole = await msg.guild.roles.cache.find(role => tran_str(role.name) == tran_str(roles[i]));
 				if (serverRole == undefined) return msg.channel.send("Unable to find server role with the name " + roles[i]);
 				outMsg += (placeEmoji ? placeEmoji : serverRole.name) + (i == roles.length-1 ? "" : i == roles.length-2 ? " & " : ", ");
