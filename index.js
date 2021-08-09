@@ -66,7 +66,7 @@ function populateRolesRanges() {
 
 const downloadPage = (url) => {
     return new Promise((resolve, reject) => {
-        request(url, (error, response, body) => {
+        request({url: url, timeout: 5000}, (error, response, body) => {
             if (error) reject(error);
             if (!response) return "do over";
             if (response.statusCode != 200) {
@@ -207,7 +207,6 @@ const getRequest = async (mode, warid, msg_obj) => {
 		} else {
 			let html = await downloadPage('https://mariokartboards.com/lounge/api/ladderevent.php?ladder_id=' + num + '&event_id=' + warid + "&compress");
 			let parsedData = JSON.parse(html);
-			if (parsedData.status != "success") return false;
 			parsedData = parsedData.results;
 			if (parsedData.length > 1) {
 				for (let i = 0; i < parsedData.length; i++) {
@@ -264,6 +263,9 @@ const getRequest = async (mode, warid, msg_obj) => {
 	} catch (error) {
 		console.error('ERROR:');
         console.error(error);
+        if (error.code == "ETIMEDOUT") {
+        	msg_obj.channel.send("A connection error occurred. Please try again");
+        }
 	}
 }
 
