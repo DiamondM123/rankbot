@@ -83,6 +83,7 @@ const determineLatestEvent = async (mode) => {
 		let num = mode == 'rt' ? '1' : '2';
 		let html = await downloadPage('https://mariokartboards.com/lounge/api/ladderevent.php?ladder_id=' + num + '&all=1&compress');
 		let parsedData = JSON.parse(html);
+		if (parsedData.status != "success") return false;
 		parsedData = parsedData.results;
 		if (parsedData.length > 0)
 			return parsedData[0].event_id.toString();
@@ -171,6 +172,7 @@ const getRequest = async (mode, warid, msg_obj) => {
 		if (isNaN(warid)) {
 			let html = await downloadPage('https://mariokartboards.com/lounge/api/ladderplayer.php?ladder_id=' + num + '&player_name=' + warid);
 			let parsedData = JSON.parse(html);
+			if (parsedData.status != "success") return false;
 			parsedData = parsedData.results;
 			let returnArray = [];
 			let LRReturnArray = [];
@@ -205,6 +207,7 @@ const getRequest = async (mode, warid, msg_obj) => {
 		} else {
 			let html = await downloadPage('https://mariokartboards.com/lounge/api/ladderevent.php?ladder_id=' + num + '&event_id=' + warid + "&compress");
 			let parsedData = JSON.parse(html);
+			if (parsedData.status != "success") return false;
 			parsedData = parsedData.results;
 			if (parsedData.length > 1) {
 				for (let i = 0; i < parsedData.length; i++) {
