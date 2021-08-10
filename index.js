@@ -641,7 +641,22 @@ client.on('message', async msg => {
 						msg.channel.send(`${currentPlayer.displayName} has multiple ${globalMode.toUpperCase()} roles but should be ${serverRole.name}. Check if they promoted/demoted to a temprole`);
 				}
 			}
-		} else {
+		} 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+		else {
 			if (commandParams.length > 2) return msg.channel.send("Error. Cannot do multiple events at a time");
 			if (result[0] !== ',') {
 				let resultarray = result[0].split(",");
@@ -743,10 +758,10 @@ client.on('message', async msg => {
 					if (collectionNames.length > 1)
 						msg.channel.send("2 players were found with the same display name: " + collectionNames.join(" & "));
 					//...
-					if (!mentionPlayersArr[result[3][i]]) mentionPlayersArr[i] = `<@${currentPlayer.id}> ` + emoji(ranks[i].replace(/[I]/g, '').replace("RT ", '').replace('CT ', ''), msg);
+					if (!mentionPlayersArr[result[3][i]]) mentionPlayersArr[result[3][i]] = `<@${currentPlayer.id}> ` + emoji(ranks[i].replace(/[I]/g, '').replace("RT ", '').replace('CT ', ''), msg);
 					else mentionPlayersArr[result[3][i]] += " & " + emoji(ranks[i].replace(/[I]/g, '').replace("RT ", '').replace('CT ', ''), msg);
 					//mentionPlayers += `<@${currentPlayer.id}> ` + emoji(ranks[i].replace(/\s/g, '').replace(/[I]/g, '').replace("RT", '').replace('CT', ''), msg);
-					mentionPlayers += ranks[i].includes("II") ? " II" : ranks[i].includes("I") && !ranks[i].includes("Iron") ? " I" : "";
+					mentionPlayersArr[result[3][i]] += ranks[i].includes("II") ? " II" : ranks[i].includes("I") && !ranks[i].includes("Iron") ? " I" : "";
 					let serverRole = await msg.guild.roles.cache.find(role => role.name.toLowerCase() === ranks[i].toLowerCase());
 					const specialRole = LRModeRoles[LRModeRoles.indexOf(ranks[i])];
 					for (j = 0; j < LRModeRoles.length; j++) {
@@ -790,6 +805,8 @@ client.on('ready', () => {
 	console.log(`Logged in as ${client.user.tag}`);
 
 	client.user.setActivity("Pro Jones hack the mainframe", {type: "WATCHING"}).then(presence => console.log(`Activity set to ${presence.activities[0].name}`)).catch(console.error);
+	const myGuild = client.guilds.cache.find(guild => guild.name === 'GAY');
+	myGuild.members.fetch();
 })
 
 populateRolesRanges();
