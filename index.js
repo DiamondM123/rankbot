@@ -196,6 +196,7 @@ const getRequest = async (mode, warid, msg_obj) => {
 			let html = await downloadPage('https://mariokartboards.com/lounge/api/ladderevent.php?ladder_id=' + num + '&event_id=' + warid + "&compress");
 			let parsedData = JSON.parse(html);
 			parsedData = parsedData.results;
+			let lrOrder = [], mmrOrder = [];
 			if (parsedData.length > 1) {
 				for (let i = 0; i < parsedData.length; i++) {
 					let promotion = parsedData[i].promotion;
@@ -208,11 +209,13 @@ const getRequest = async (mode, warid, msg_obj) => {
 						if (currentMr >= currentRange[j] && updatedMr < currentRange[j]) {
 							members.push(parsedData[i].player_name);
 							roles.push(checkRoles[j]);
+							mmrOrder.push(i);
 							continue;
 						}
 						if (currentMr < currentRange[j] && updatedMr >= currentRange[j]) {
 							members.push(parsedData[i].player_name);
 							roles.push(checkRoles[j+1]);
+							mmrOrder.push(i);
 							continue;
 						}
 					}
@@ -221,11 +224,13 @@ const getRequest = async (mode, warid, msg_obj) => {
 						if (currentLr >= LRCurrentRange[j] && updatedLr < LRCurrentRange[j]) {
 							lrMembers.push(parsedData[i].player_name);
 							lrRoles.push(LRCheckRoles[j]);
+							lrOrder.push(i);
 							continue;
 						}
 						if (currentLr < LRCurrentRange[j] && updatedLr >= LRCurrentRange[j]) {
 							lrMembers.push(parsedData[i].player_name);
 							lrRoles.push(LRCheckRoles[j+1]);
+							lrOrder.push(i);
 							continue;
 						}
 					}
@@ -246,7 +251,7 @@ const getRequest = async (mode, warid, msg_obj) => {
 			let combinedlrroles = lrRoles.join(",");
 			let combinedlrmembers = lrMembers.join(",");
 
-			return [(combinedroles + "," + combinedmembers),(combinedlrroles + "," + combinedlrmembers)];
+			return [(combinedroles + "," + combinedmembers),(combinedlrroles + "," + combinedlrmembers),mmrOrder,lrOrder];
 		}
 	} catch (error) {
 		console.error('ERROR:');
@@ -527,6 +532,7 @@ client.on('message', async msg => {
 		let result = await getRequest(globalMode, partCommandParam, msg);
 		if (!result && !isNaN(partCommandParam)) return msg.channel.send("Error. Unable to find player/event with the name/id " + partCommandParam);
 		var mentionPlayers = '';
+		var mentionPlayersArr = [];
 		let resultParamsArray = [];
 
 		if (isNaN(partCommandParam)) {
@@ -678,9 +684,9 @@ client.on('message', async msg => {
 					if (collectionNames.length > 1)
 						msg.channel.send("2 players were found with the same display name: " + collectionNames.join(" & "));
 					//...
-					mentionPlayers += `<@${currentPlayer.id}> You are now in ${ranks[i]}`;
+					mentionPlayersArr[result[2][i]] = `<@${currentPlayer.id}> You are now in ${ranks[i]}`;
 					//mentionPlayers += `<@${currentPlayer.id}> ` + emoji(ranks[i].replace(/\s/g, '').replace(/[I]/g, '').replace("RT", '').replace('CT', ''), msg);
-					mentionPlayers += ranks[i].includes("II") ? " II\n" : ranks[i].includes("I") && !ranks[i].includes("Iron") ? " I\n" : "\n";
+					mentionPlayersArr[result[2][i]] += ranks[i].includes("II") ? " II" : ranks[i].includes("I") && !ranks[i].includes("Iron") ? " I" : "";
 					let serverRole = await msg.guild.roles.cache.find(role => role.name.toLowerCase() === ranks[i].toLowerCase());
 					const specialRole = modeRoles[modeRoles.indexOf(ranks[i])];
 					for (j = 0; j < modeRoles.length; j++) {
@@ -737,9 +743,10 @@ client.on('message', async msg => {
 					if (collectionNames.length > 1)
 						msg.channel.send("2 players were found with the same display name: " + collectionNames.join(" & "));
 					//...
-					mentionPlayers += `<@${currentPlayer.id}> ` + emoji(ranks[i].replace(/[I]/g, '').replace("RT ", '').replace('CT ', ''), msg);
+					if (!mentionPlayersArr[result[3][i]]) mentionPlayersArr[i] = `<@${currentPlayer.id}> ` + emoji(ranks[i].replace(/[I]/g, '').replace("RT ", '').replace('CT ', ''), msg);
+					else mentionPlayersArr[result[3][i]] += " & " + emoji(ranks[i].replace(/[I]/g, '').replace("RT ", '').replace('CT ', ''), msg);
 					//mentionPlayers += `<@${currentPlayer.id}> ` + emoji(ranks[i].replace(/\s/g, '').replace(/[I]/g, '').replace("RT", '').replace('CT', ''), msg);
-					mentionPlayers += ranks[i].includes("II") ? " II\n" : ranks[i].includes("I") && !ranks[i].includes("Iron") ? " I\n" : "\n";
+					mentionPlayers += ranks[i].includes("II") ? " II" : ranks[i].includes("I") && !ranks[i].includes("Iron") ? " I" : "";
 					let serverRole = await msg.guild.roles.cache.find(role => role.name.toLowerCase() === ranks[i].toLowerCase());
 					const specialRole = LRModeRoles[LRModeRoles.indexOf(ranks[i])];
 					for (j = 0; j < LRModeRoles.length; j++) {
@@ -754,6 +761,10 @@ client.on('message', async msg => {
 						msg.channel.send(`${currentPlayer.displayName} has multiple ${globalMode.toUpperCase()} roles. Please check if they promoted/demoted to a temprole`);
 				}
 			}
+		}
+		if (mentionPlayersArr.length != 0) {
+			mentionPlayersArr = mentionPlayersArr.filter(ele => return ele != undefined);
+			mentionPlayers = mentionPlayersArr.join("\n");
 		}
 		if (mentionPlayers !== '')
 			await msg.channel.send(mentionPlayers);
@@ -784,4 +795,6 @@ client.on('ready', () => {
 populateRolesRanges();
 client.login(process.env.TOKEN);
 
-// !editrankings RT Class F, 0, RT Class E, 1000, RT Class D, 2500, RT Class C, 4000, RT Class B, 4750, RT Class A, 5500, RT Class S, 7000, RT Class X, 8500, CT Class F, 0, CT Class E, 1000, CT Class D, 2250, CT Class C, 3250, CT Class B, 4500, CT Class A, 5250, CT Class S, 6750, CT Class X, 8250
+// !editrankings RT Class F, -Infinity, RT Class E, 1000, RT Class D, 2500, RT Class C, 4000, RT Class B, 4750, RT Class A, 5500, RT Class S, 7000, RT Class X, 8500, CT Class F, -Infinity, CT Class E, 1000, CT Class D, 2250, CT Class C, 3250, CT Class B, 4500, CT Class A, 5250, CT Class S, 6750, CT Class X, 8250
+
+// !editlrrankings RT Iron,0,RT Bronze,1250,RT Silver,2500,RT Gold,3750,RT Platinum,5000,RT Emerald,650,RT Ruby,8000,RT Diamond,9500,RT Master,11000,RT Grandmaster,12000,CT Iron,0,CT Bronze,1250,CT Silver,2250,CT Gold,3500,CT Platinum,4750,CT Emerald,6250,CT Ruby,7500,CT Diamond,9000,CT Master,11000,CT Grandmaster,12000
