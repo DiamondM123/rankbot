@@ -763,7 +763,7 @@ client.on('message', async msg => {
 			}
 		}
 		if (mentionPlayersArr.length != 0) {
-			mentionPlayersArr = mentionPlayersArr.filter(ele => return ele != undefined);
+			mentionPlayersArr = mentionPlayersArr.filter(ele => {return ele != undefined});
 			mentionPlayers = mentionPlayersArr.join("\n");
 		}
 		if (mentionPlayers !== '')
@@ -797,4 +797,4 @@ client.login(process.env.TOKEN);
 
 // !editrankings RT Class F, -Infinity, RT Class E, 1000, RT Class D, 2500, RT Class C, 4000, RT Class B, 4750, RT Class A, 5500, RT Class S, 7000, RT Class X, 8500, CT Class F, -Infinity, CT Class E, 1000, CT Class D, 2250, CT Class C, 3250, CT Class B, 4500, CT Class A, 5250, CT Class S, 6750, CT Class X, 8250
 
-// !editlrrankings RT Iron,0,RT Bronze,1250,RT Silver,2500,RT Gold,3750,RT Platinum,5000,RT Emerald,650,RT Ruby,8000,RT Diamond,9500,RT Master,11000,RT Grandmaster,12000,CT Iron,0,CT Bronze,1250,CT Silver,2250,CT Gold,3500,CT Platinum,4750,CT Emerald,6250,CT Ruby,7500,CT Diamond,9000,CT Master,11000,CT Grandmaster,12000
+// !editlrrankings RT Iron,0,RT Bronze,1250,RT Silver,2500,RT Gold,3750,RT Platinum,5000,RT Emerald,6500,RT Ruby,8000,RT Diamond,9500,RT Master,11000,RT Grandmaster,12000,CT Iron,0,CT Bronze,1250,CT Silver,2250,CT Gold,3500,CT Platinum,4750,CT Emerald,6250,CT Ruby,7500,CT Diamond,9000,CT Master,11000,CT Grandmaster,12000
