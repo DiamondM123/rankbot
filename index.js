@@ -25,45 +25,6 @@ var rtLRRoles = [], ctLRRoles = [], rtLRRanges = [], ctLRRanges = [];
 
 var finalTop50Str = "";
 
-function populateRolesRanges() {
-	rtRoles = [], ctRoles = [], rtRanges = [], ctRanges = [];
-	rtLRRoles = [], ctLRRoles = [], rtLRRanges = [], ctLRRanges = [];
-	if (!fs.existsSync(__dirname + "/rankings.txt")) {
-		fs.writeFileSync(__dirname + "/rankings.txt", "RT Iron,0\nRT Bronze,1000");
-	}
-	if (!fs.existsSync(__dirname + "/classes.txt")) {
-		fs.writeFileSync(__dirname + "/classes.txt", "RT Class F,0\nRT Class E,1000");
-	}
-	let rankData = fs.readFileSync(__dirname + "/rankings.txt", "utf-8");
-	let lrRankData = fs.readFileSync(__dirname + "/classes.txt", "utf-8");
-	rankData = rankData.split("\n");
-	lrRankData = lrRankData.split("\n");
-	for (let i = 0; i < rankData.length; i++) {
-		if (rankData[i].startsWith("RT")) {
-			rtRoles.push(rankData[i].split(",")[0]);
-			if (Number(rankData[i].split(",")[1]) > 0)
-				rtRanges.push(Number(rankData[i].split(",")[1]));
-		}
-		if (rankData[i].startsWith("CT")) {
-			ctRoles.push(rankData[i].split(",")[0]);
-			if (Number(rankData[i].split(",")[1]) > 0)
-				ctRanges.push(Number(rankData[i].split(",")[1]));
-		}
-	}
-	for (let i = 0; i < lrRankData.length; i++) {
-		if (lrRankData[i].startsWith("RT")) {
-			rtLRRoles.push(lrRankData[i].split(",")[0]);
-			if (Number(lrRankData[i].split(",")[1]) > 0)
-				rtLRRanges.push(Number(lrRankData[i].split(",")[1]));
-		}
-		if (lrRankData[i].startsWith("CT")) {
-			ctLRRoles.push(lrRankData[i].split(",")[0]);
-			if (Number(lrRankData[i].split(",")[1]) > 0)
-				ctLRRanges.push(Number(lrRankData[i].split(",")[1]));
-		}
-	}
-}
-
 const downloadPage = (url) => {
     return new Promise((resolve, reject) => {
         request({url: url, timeout: 5000}, (error, response, body) => {
@@ -76,6 +37,33 @@ const downloadPage = (url) => {
             resolve(body);
         })
     })
+}
+
+async function populateRoleRangesB(url, arr1, arr2, mode, classMode) {
+	try {
+		let html = await downloadPage(url);
+		let parsedData = JSON.parse(html);
+		if (parsedData.status != "success") return false;
+		parsedData = parsedData.results;
+		for (let i = 0; i < parsedData.length; i++) {
+			arr1[Number(parsedData[i].ladder_order)-1] = mode + " " + (classMode ? parsedData[i].ladder_class_name : parsedData[i].ladder_boundary_name);
+			if (i != 0) arr2[Number(parsedData[i].ladder_order)-2] = classMode ? Number(parsedData[i].minimum_mmr) : Number(parsedData[i].minimum_lr);
+		}
+	} catch (error) {
+		console.error('ERROR:');
+        console.error(error);
+	}
+	
+}
+
+function populateRolesRanges() {
+	rtRoles = [], ctRoles = [], rtRanges = [], ctRanges = [];
+	rtLRRoles = [], ctLRRoles = [], rtLRRanges = [], ctLRRanges = [];
+	if (!populateRoleRangesB("https://mariokartboards.com/lounge/api/ladderclass.php?ladder_id=1", rtRoles, rtRanges, "RT", true)) return false;
+	if (!populateRoleRangesB("https://mariokartboards.com/lounge/api/ladderboundary.php?ladder_id=1", rtLRRoles, rtLRRanges, "RT", false)) return false;
+	if (!populateRoleRangesB("https://mariokartboards.com/lounge/api/ladderclass.php?ladder_id=2", ctRoles, ctRanges, "CT", true)) return false;
+	if (!populateRoleRangesB("https://mariokartboards.com/lounge/api/ladderboundary.php?ladder_id=2", ctLRRoles, ctLRRanges, "CT", false)) return false;
+	return true;
 }
 
 const determineLatestEvent = async (mode) => {
@@ -388,7 +376,7 @@ client.on('message', async msg => {
 		// let hahaha = await downloadPage("https://mariokartboards.com/lounge/json/player.php?type=rt&name=Fox,kenchan,Killua,neuro,Shaun,Jeff,Kaspie,barney,meraki,pachu,Quinn,Leops,Mikey,jun,Sane,rusoX,Az,EmilP,Batcake,Taz,Sora,Dane,lo,Solar,Goober");
 		// hahaha = JSON.parse(hahaha);
 		// console.log(hahaha);
-		const commandList = ["!rt", "!ct", "!dp", "!top50", "!assign", "!viewrankings", "!editrankings", "!deleterankings", "!insertrankings", "!viewlrrankings", "!editlrrankings", "!deletelrrankings", "!insertlrrankings"];
+		const commandList = ["!rt", "!ct", "!dp", "!top50", "!assign", "!viewrankings", "!viewlrrankings", "!updaterankings"];
 		let go_on = false;
 		for (command in commandList) {
 			if (msg.content.toLowerCase().split(/\s+/)[0] == commandList[command]) go_on = true;
@@ -442,18 +430,13 @@ client.on('message', async msg => {
 		}
 
 		if (msg.content.startsWith("!viewrankings")) {
-			if (!canUpdateRankings && msg.member.id != '222356623392243712') return;
 			try {
-				let rankData = fs.readFileSync(__dirname + "/rankings.txt", "utf-8");
-				rankData = rankData.split("\n");
 				let updaterankmsg = "";
-				for (let i = 0; i < rankData.length; i++) {
-					if (Number(rankData[i].split(",")[1]) == -Infinity) {
-						updaterankmsg += `${rankData[i].split(",")[0]} —> ` + "<" + (Number(rankData[i+1].split(",")[1].replace(/\s+/g, ''))).toString() + " MMR\n";
-						continue;
-					}
-					let upperRange = i == rankData.length-1 || Number(rankData[i+1].split(",")[1]) < Number(rankData[i].split(",")[1]) ? "+" : " - " + (Number(rankData[i+1].split(",")[1].replace(/\s+/g, ''))-1).toString();
-					updaterankmsg += `${rankData[i].split(",")[0]} —> ${rankData[i].split(",")[1].replace(/\s+/g, '') + upperRange} MMR\n`;
+				for (let i = 0; i < rtRoles.length; i++) {
+					updaterankmsg += rtRoles[i] + " —> " + (i == 0 ? "<" : "") + (i == 0 ? rtRanges[i] : rtRanges[i-1]) + (i == 0 ? "" : i == rtRoles.length-1 ? "+" : " - " + (Number(rtRanges[i])-1).toString()) + " MMR\n";
+				}
+				for (let i = 0; i < ctRoles.length; i++) {
+					updaterankmsg += ctRoles[i] + " —> " + (i == 0 ? "<" : "") + (i == 0 ? ctRanges[i] : ctRanges[i-1]) + (i == 0 ? "" : i == ctRoles.length-1 ? "+" : " - " + (Number(ctRanges[i])-1).toString()) + " MMR\n";
 				}
 				return msg.channel.send(updaterankmsg);
 			} catch (error) {
@@ -462,18 +445,13 @@ client.on('message', async msg => {
 		}
 
 		if (msg.content.startsWith("!viewlrrankings")) {
-			if (!canUpdateRankings && msg.member.id != '222356623392243712') return;
 			try {
-				let rankData = fs.readFileSync(__dirname + "/classes.txt", "utf-8");
-				rankData = rankData.split("\n");
 				let updaterankmsg = "";
-				for (let i = 0; i < rankData.length; i++) {
-					if (Number(rankData[i].split(",")[1]) == -Infinity) {
-						updaterankmsg += `${rankData[i].split(",")[0]} —> ` + "<" + (Number(rankData[i+1].split(",")[1].replace(/\s+/g, ''))).toString() + " LR\n";
-						continue;
-					}
-					let upperRange = i == rankData.length-1 || Number(rankData[i+1].split(",")[1]) < Number(rankData[i].split(",")[1]) ? "+" : " - " + (Number(rankData[i+1].split(",")[1].replace(/\s+/g, ''))-1).toString();
-					updaterankmsg += `${rankData[i].split(",")[0]} —> ${rankData[i].split(",")[1].replace(/\s+/g, '') + upperRange} LR\n`;
+				for (let i = 0; i < rtLRRoles.length; i++) {
+					updaterankmsg += rtLRRoles[i] + " —> " + (i == 0 ? "<" : "") + (i == 0 ? rtLRRanges[i] : rtLRRanges[i-1]) + (i == 0 ? "" : i == rtLRRoles.length-1 ? "+" : " - " + (Number(rtLRRanges[i])-1).toString()) + " LR\n";
+				}
+				for (let i = 0; i < ctLRRoles.length; i++) {
+					updaterankmsg += ctLRRoles[i] + " —> " + (i == 0 ? "<" : "") + (i == 0 ? ctLRRanges[i] : ctLRRanges[i-1]) + (i == 0 ? "" : i == ctLRRoles.length-1 ? "+" : " - " + (Number(ctLRRanges[i])-1).toString()) + " LR\n";
 				}
 				return msg.channel.send(updaterankmsg);
 			} catch (error) {
@@ -481,148 +459,10 @@ client.on('message', async msg => {
 			}
 		}
 
-		if (msg.content.startsWith("!editrankings") || msg.content.startsWith("!deleterankings") || msg.content.startsWith("!insertrankings")) {
-			if (!canUpdateRankings && msg.member.id != '222356623392243712') return;
-			let args = contentForRankings.replace("!editrankings", "").replace("!deleterankings", "").replace("!insertrankings", "");
-			args = args.split(",");
-			for (let arg in args) {
-				while (args[arg][0] == " ") args[arg] = args[arg].substring(1);
-			}
-			let updaterankmsg = "";
-			let rankData = fs.readFileSync(__dirname + "/rankings.txt", "utf-8");
-			rankData = rankData.split("\n");
-			let ranks = [], mmrs = [];
-			for (let rank in rankData) {
-				if (rankData[rank].replace(/\s+/g, '') != "") {
-					ranks.push(rankData[rank].split(",")[0]);
-					mmrs.push(rankData[rank].split(",")[1]);
-				}
-			}
-			if (msg.content.startsWith("!editrankings") || msg.content.startsWith("!insertrankings")) {
-				let insertIndex = false;
-				if (msg.content.startsWith("!insertrankings")) {
-					insertIndex = ranks.find(element => tran_str(element) == tran_str(args[0]));
-					if (!insertIndex) {
-						updaterankmsg += `Unable to find role "${args[0]}"\n`;
-						return msg.channel.send(updaterankmsg);
-					} else {
-						args.shift();
-					}
-				}
-				for (let i = 0; i < args.length; i++) {
-					if (i%2==0) {
-						let roleIndex = ranks.find(element => tran_str(element) == tran_str(args[i]));
-						if (!roleIndex) {
-							if (!isNaN(args[i+1])) {
-								updaterankmsg += `Ranking "${args[i]}" has been added with MMR threshold ${args[i+1]}\n`;
-								ranks.splice(insertIndex ? ranks.indexOf(insertIndex) : ranks.length, 0, args[i]);
-								mmrs.splice(insertIndex ? ranks.indexOf(insertIndex)-1 : ranks.length-1, 0, args[i+1]);
-							} else {
-								updaterankmsg += `Ranking "${args[i]}" does not have a valid MMR. This has not been added\n`;
-							}
-						} else {
-							if (!isNaN(args[i+1])) {
-								mmrs[ranks.indexOf(roleIndex)] = args[i+1];
-								updaterankmsg += `The MMR threshold of "${roleIndex}" has been changed to ${args[i+1]}\n`;
-							} else {
-								updaterankmsg += `"${args[i+1]}" is not a valid MMR. This has not been changed\n`;
-							}
-						}
-					}
-				}
-			} else {
-				for (let i = 0; i < args.length; i++) {
-					let roleIndex = ranks.find(element => tran_str(element) == tran_str(args[i]));
-					if (!roleIndex) {
-						updaterankmsg += `Unable to find/delete "${args[i]}" ranking\n`;
-					} else {
-						updaterankmsg += `"${roleIndex}" ranking has been deleted\n`;
-						let someIndex = ranks.indexOf(roleIndex);
-						ranks.splice(someIndex,1);
-						mmrs.splice(someIndex,1);
-					}
-				}
-			}
-
-			rankData = "";
-			for (let i = 0; i < ranks.length; i++) {
-				rankData += ranks[i] + "," + mmrs[i] + (i == ranks.length-1 ? "" : "\n");
-			}
-			fs.writeFileSync(__dirname + "/rankings.txt", rankData);
-			populateRolesRanges();
-			return msg.channel.send(updaterankmsg);
-		}
-
-
-		if (msg.content.startsWith("!editlrrankings") || msg.content.startsWith("!deletelrrankings") || msg.content.startsWith("!insertlrrankings")) {
-			if (!canUpdateRankings && msg.member.id != '222356623392243712') return;
-			let args = contentForRankings.replace("!editlrrankings", "").replace("!deletelrrankings", "").replace("!insertlrrankings", "");
-			args = args.split(",");
-			for (let arg in args) {
-				while (args[arg][0] == " ") args[arg] = args[arg].substring(1);
-			}
-			let updaterankmsg = "";
-			let rankData = fs.readFileSync(__dirname + "/classes.txt", "utf-8");
-			rankData = rankData.split("\n");
-			let ranks = [], mmrs = [];
-			for (let rank in rankData) {
-				if (rankData[rank].replace(/\s+/g, '') != "") {
-					ranks.push(rankData[rank].split(",")[0]);
-					mmrs.push(rankData[rank].split(",")[1]);
-				}
-			}
-			if (msg.content.startsWith("!editlrrankings") || msg.content.startsWith("!insertlrrankings")) {
-				let insertIndex = false;
-				if (msg.content.startsWith("!insertlrrankings")) {
-					insertIndex = ranks.find(element => tran_str(element) == tran_str(args[0]));
-					if (!insertIndex) {
-						updaterankmsg += `Unable to find role "${args[0]}"\n`;
-						return msg.channel.send(updaterankmsg);
-					} else {
-						args.shift();
-					}
-				}
-				for (let i = 0; i < args.length; i++) {
-					if (i%2==0) {
-						let roleIndex = ranks.find(element => tran_str(element) == tran_str(args[i]));
-						if (!roleIndex) {
-							if (!isNaN(args[i+1])) {
-								updaterankmsg += `Ranking "${args[i]}" has been added with LR threshold ${args[i+1]}\n`;
-								ranks.splice(insertIndex ? ranks.indexOf(insertIndex) : ranks.length, 0, args[i]);
-								mmrs.splice(insertIndex ? ranks.indexOf(insertIndex)-1 : ranks.length-1, 0, args[i+1]);
-							} else {
-								updaterankmsg += `Ranking "${args[i]}" does not have a valid LR. This has not been added\n`;
-							}
-						} else {
-							if (!isNaN(args[i+1])) {
-								mmrs[ranks.indexOf(roleIndex)] = args[i+1];
-								updaterankmsg += `The LR threshold of "${roleIndex}" has been changed to ${args[i+1]}\n`;
-							} else {
-								updaterankmsg += `"${args[i+1]}" is not a valid LR. This has not been changed\n`;
-							}
-						}
-					}
-				}
-			} else {
-				for (let i = 0; i < args.length; i++) {
-					let roleIndex = ranks.find(element => tran_str(element) == tran_str(args[i]));
-					if (!roleIndex) {
-						updaterankmsg += `Unable to find/delete "${args[i]}" ranking\n`;
-					} else {
-						updaterankmsg += `"${roleIndex}" ranking has been deleted\n`;
-						ranks.splice(roleIndex,1);
-						mmrs.splice(roleIndex,1);
-					}
-				}
-			}
-
-			rankData = "";
-			for (let i = 0; i < ranks.length; i++) {
-				rankData += ranks[i] + "," + mmrs[i] + (i == ranks.length-1 ? "" : "\n");
-			}
-			fs.writeFileSync(__dirname + "/classes.txt", rankData);
-			populateRolesRanges();
-			return msg.channel.send(updaterankmsg);
+		if (msg.content.startsWith("!updaterankings")) {
+			if (!populateRolesRanges()) msg.channel.send("Connection error updating rankings. Please try again");
+			else msg.channel.send("Class rankings and divisions updated");
+			return;
 		}
 
 		const commandParams = msg.content.split(/\s+/);
@@ -944,4 +784,4 @@ client.on('ready', () => {
 populateRolesRanges();
 client.login(process.env.TOKEN);
 
-// !editrankings RT Class F, 0, RT Class E, 1000,
+// !editrankings RT Class F, 0, RT Class E, 1000, RT Class D, 2500, RT Class C, 4000, RT Class B, 4750, RT Class A, 5500, RT Class S, 7000, RT Class X, 8500, CT Class F, 0, CT Class E, 1000, CT Class D, 2250, CT Class C, 3250, CT Class B, 4500, CT Class A, 5250, CT Class S, 6750, CT Class X, 8250
