@@ -572,7 +572,7 @@ client.on('message', async msg => {
 							currentPlayerCollection.each(member => collectionNames.push(member.user.tag));
 					}
 					if (currentPlayer === undefined) {
-						msg.channel.send(result[0][i] + " does not have a class role yet.");
+						msg.channel.send(result[0][i] + " is unverified or does not have a class role yet.");
 						continue;
 					}
 					let hasDupRoles = checkForDuplicateRoles(modeRoles, currentPlayer);
@@ -587,7 +587,7 @@ client.on('message', async msg => {
 						}
 						let fromPenText = (commandParams[i+2] === "np") ? "" : "(from pen)";
 						await currentPlayer.roles.add(serverRole.id);
-						mentionPlayers += `<@${currentPlayer.id}> You are now in ${result[0][i+1]}`;
+						mentionPlayers += `<@${currentPlayer.id}> ${result[0][i+1]}`;
 						//mentionPlayers += `<@${currentPlayer.id}> ` + emoji(result[i+1].replace(/\s/g, '').replace(/[I]/g, '').replace("RT", '').replace('CT', ''), msg);
 						mentionPlayers += result[0][i+1].includes("II") ? " II" : result[0][i+1].includes("I") && !result[0][i+1].includes("Iron") ? " I" : "";
 						mentionPlayers += ` ${fromPenText}\n`;
@@ -617,7 +617,7 @@ client.on('message', async msg => {
 							currentPlayerCollection.each(member => collectionNames.push(member.user.tag));
 					}
 					if (currentPlayer === undefined) {
-						msg.channel.send(result[1][i] + " does not have a rank role yet.");
+						msg.channel.send(result[1][i] + " is unverified or does not have a rank role yet.");
 						continue;
 					}
 					let hasDupRoles = checkForDuplicateRoles(LRModeRoles, currentPlayer);
@@ -676,7 +676,7 @@ client.on('message', async msg => {
 						}
 					}
 					if (currentPlayer === undefined) {
-						msg.channel.send(players[i] + " does not have a class role yet.");
+						msg.channel.send(players[i] + " is unverified or does not have a class role yet.");
 						continue;
 					}
 					let hasDupRoles = checkForDuplicateRoles(modeRoles, currentPlayer);
@@ -684,7 +684,7 @@ client.on('message', async msg => {
 					if (collectionNames.length > 1)
 						msg.channel.send("2 players were found with the same display name: " + collectionNames.join(" & "));
 					//...
-					mentionPlayersArr[result[2][i]] = `<@${currentPlayer.id}> You are now in ${ranks[i]}`;
+					mentionPlayersArr[result[2][i]] = `<@${currentPlayer.id}> ${ranks[i]}`;
 					//mentionPlayers += `<@${currentPlayer.id}> ` + emoji(ranks[i].replace(/\s/g, '').replace(/[I]/g, '').replace("RT", '').replace('CT', ''), msg);
 					mentionPlayersArr[result[2][i]] += ranks[i].includes("II") ? " II" : ranks[i].includes("I") && !ranks[i].includes("Iron") ? " I" : "";
 					let serverRole = await msg.guild.roles.cache.find(role => role.name.toLowerCase() === ranks[i].toLowerCase());
@@ -735,7 +735,7 @@ client.on('message', async msg => {
 						}
 					}
 					if (currentPlayer === undefined) {
-						msg.channel.send(players[i] + " does not have a rank role yet.");
+						msg.channel.send(players[i] + " is unverified or does not have a rank role yet.");
 						continue;
 					}
 					let hasDupRoles = checkForDuplicateRoles(LRModeRoles, currentPlayer);
