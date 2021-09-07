@@ -59,17 +59,17 @@ async function populateRoleRangesB(url, arr1, arr2, mode, classMode) {
 function populateRolesRanges() {
 	rtRoles = [], ctRoles = [], rtRanges = [], ctRanges = [];
 	rtLRRoles = [], ctLRRoles = [], rtLRRanges = [], ctLRRanges = [];
-	if (!populateRoleRangesB("https://mariokartboards.com/lounge/api/ladderclass.php?ladder_id=1", rtRoles, rtRanges, "RT", true)) return false;
-	if (!populateRoleRangesB("https://mariokartboards.com/lounge/api/ladderboundary.php?ladder_id=1", rtLRRoles, rtLRRanges, "RT", false)) return false;
-	if (!populateRoleRangesB("https://mariokartboards.com/lounge/api/ladderclass.php?ladder_id=2", ctRoles, ctRanges, "CT", true)) return false;
-	if (!populateRoleRangesB("https://mariokartboards.com/lounge/api/ladderboundary.php?ladder_id=2", ctLRRoles, ctLRRanges, "CT", false)) return false;
+	if (!populateRoleRangesB("https://mkwlounge.gg/api/ladderclass.php?ladder_id=1", rtRoles, rtRanges, "RT", true)) return false;
+	if (!populateRoleRangesB("https://mkwlounge.gg/api/ladderboundary.php?ladder_id=1", rtLRRoles, rtLRRanges, "RT", false)) return false;
+	if (!populateRoleRangesB("https://mkwlounge.gg/api/ladderclass.php?ladder_id=2", ctRoles, ctRanges, "CT", true)) return false;
+	if (!populateRoleRangesB("https://mkwlounge.gg/api/ladderboundary.php?ladder_id=2", ctLRRoles, ctLRRanges, "CT", false)) return false;
 	return true;
 }
 
 const determineLatestEvent = async (mode) => {
 	try {
 		let num = mode == 'rt' ? '1' : '2';
-		let html = await downloadPage('https://mariokartboards.com/lounge/api/ladderevent.php?ladder_id=' + num + '&all=1&compress');
+		let html = await downloadPage('https://mkwlounge.gg/api/ladderevent.php?ladder_id=' + num + '&all=1&compress');
 		let parsedData = JSON.parse(html);
 		if (parsedData.status != "success") return false;
 		parsedData = parsedData.results;
@@ -102,7 +102,7 @@ const emoji = (inp, msg_o) => {
 
 async function getCurrentLoungeDate() {
 	try {
-		let currentDate = await downloadPage("https://mariokartboards.com/lounge/api/serverstats.php");
+		let currentDate = await downloadPage("https://mkwlounge.gg/api/serverstats.php");
 		currentDate = JSON.parse(currentDate);
 		currentDate = currentDate.results;
 		return new Date(currentDate.server_timestamp);
@@ -119,7 +119,7 @@ const getRequest = async (mode, warid, msg_obj) => {
 		var num = mode == 'rt' ? '1' : '2';
 		if (enableTop50) {
 			let top50names = [];
-			let top50html = await downloadPage(`https://mariokartboards.com/lounge/api/ladderplayer.php?ladder_id=${num}&all=1&compress`);
+			let top50html = await downloadPage(`https://mkwlounge.gg/api/ladderplayer.php?ladder_id=${num}&all=1&compress`);
 			let top50json = JSON.parse(top50html);
 			top50json = top50json.results;
 			let top50OnPage = [];
@@ -158,7 +158,7 @@ const getRequest = async (mode, warid, msg_obj) => {
 		const currentRange = mode == 'rt' ? rtRanges : ctRanges;
 		const LRCurrentRange = mode == 'rt' ? rtLRRanges : ctLRRanges;
 		if (isNaN(warid)) {
-			let html = await downloadPage('https://mariokartboards.com/lounge/api/ladderplayer.php?ladder_id=' + num + '&player_name=' + warid);
+			let html = await downloadPage('https://mkwlounge.gg/api/ladderplayer.php?ladder_id=' + num + '&player_name=' + warid);
 			let parsedData = JSON.parse(html);
 			if (parsedData.status != "success") return false;
 			parsedData = parsedData.results;
@@ -193,7 +193,7 @@ const getRequest = async (mode, warid, msg_obj) => {
 				return false;
 			return [returnArray, LRReturnArray];
 		} else {
-			let html = await downloadPage('https://mariokartboards.com/lounge/api/ladderevent.php?ladder_id=' + num + '&event_id=' + warid + "&compress");
+			let html = await downloadPage('https://mkwlounge.gg/api/ladderevent.php?ladder_id=' + num + '&event_id=' + warid + "&compress");
 			let parsedData = JSON.parse(html);
 			parsedData = parsedData.results;
 			let lrOrder = [], mmrOrder = [];
@@ -310,7 +310,7 @@ const doTop50Stuff = async (msg_obj, mode) => {
 	try {
 		if (enableTop50) {
 			var num = mode == 'rt' ? '1' : '2';
-			let ldbPage = await downloadPage(`https://mariokartboards.com/lounge/api/ladderplayer.php?ladder_id=${num}&all=1&compress`);
+			let ldbPage = await downloadPage(`https://mkwlounge.gg/api/ladderplayer.php?ladder_id=${num}&all=1&compress`);
 			ldbPage = JSON.parse(ldbPage);
 			ldbPage = ldbPage.results;
 			let playerswithTop50 = [];
