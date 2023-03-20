@@ -785,7 +785,7 @@ client.on('message', async msg => {
 				if (champPlayer) {
 					if (!champPlayer.roles.cache.some(role => role.id === champRoleId)) {
 						await champPlayer.roles.add(champRoleId);
-						mentionPlayers += `\n<@${champPlayerId}> You are a ${globalMode.toUpperCase()} Champion ` + emoji('bloblmao', msg);
+						mentionPlayers += (mentionPlayers == '' ? '' : '\n') + `<@${champPlayerId}> You are a ${globalMode.toUpperCase()} Champion ` + emoji('bloblmao', msg);
 						for (let i = 1; i < champData.results.length; ++i) {
 							let somePlayer = await msg.guild.members.cache.find(member => member.id === champData.results[i].discord_user_id);
 							if (!somePlayer) continue;
