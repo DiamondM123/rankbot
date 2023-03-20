@@ -25,6 +25,10 @@ var rtLRRoles = [], ctLRRoles = [], rtLRRanges = [], ctLRRanges = [];
 
 var finalTop50Str = "";
 
+// champion stuff
+var championRole = true;
+var allPlayersInAnEvent = [];
+
 const downloadPage = (url) => {
     return new Promise((resolve, reject) => {
         request({url: url, timeout: 5000}, (error, response, body) => {
@@ -204,6 +208,7 @@ const getRequest = async (mode, warid, msg_obj) => {
 					let updatedMr = parsedData[i].updated_mmr;
 					let currentLr = parsedData[i].current_lr;
 					let updatedLr = parsedData[i].updated_lr;
+					allPlayersInAnEvent.push(parsedData[i].player_name);
 
 					for (let j = 0; j < currentRange.length; j++) {
 						if (currentMr >= currentRange[j] && updatedMr < currentRange[j]) {
@@ -375,9 +380,12 @@ client.on('message', async msg => {
 	try {
 		//<:top:801111279157641246>
 		//msg.channel.send(emoji('top', msg));
+		allPlayersInAnEvent = [];
 		finalTop50Str = "";
 		var contentForRankings = msg.content;
+		msg.content = msg.content.replace(/<(.*?)>/i, '');
 		msg.content = msg.content.toLowerCase();
+		while(msg.content[0]==' ')msg.content = msg.content.slice(1);
 		// let hahaha = await downloadPage("https://mariokartboards.com/lounge/json/player.php?type=rt&name=Fox,kenchan,Killua,neuro,Shaun,Jeff,Kaspie,barney,meraki,pachu,Quinn,Leops,Mikey,jun,Sane,rusoX,Az,EmilP,Batcake,Taz,Sora,Dane,lo,Solar,Goober");
 		// hahaha = JSON.parse(hahaha);
 		// console.log(hahaha);
@@ -765,6 +773,27 @@ client.on('message', async msg => {
 		if (mentionPlayersArr.length != 0) {
 			mentionPlayersArr = mentionPlayersArr.filter(ele => {return ele != undefined});
 			mentionPlayers = mentionPlayersArr.join("\n");
+		}
+		if (championRole) {
+			let champRoleId = globalMode === 'rt' ? /*'1087198989365039235'*/'951276509430157352' : '951276686496895026';
+
+			let champHTML = await downloadPage(`https://mkwlounge.gg/api/ladderplayer.php?ladder_type=${globalMode}&all=1&limit=10&fields=player_name,discord_user_id,current_division,current_class`);
+			let champData=JSON.parse(champHTML);
+			let champPlayerId=/*'222356623392243712';*/champData.results[0].discord_user_id;
+			if (allPlayersInAnEvent.includes(champData.results[0].player_name)) {
+				let champPlayer = await msg.guild.members.cache.find(member => member.id === champPlayerId);
+				if (champPlayer) {
+					if (!champPlayer.roles.cache.some(role => role.id === champRoleId)) {
+						await champPlayer.roles.add(champRoleId);
+						mentionPlayers += `\n<@${champPlayerId}> You are a ${globalMode.toUpperCase()} Champion ` + emoji('bloblmao', msg);
+						for (let i = 1; i < champData.results.length; ++i) {
+							let somePlayer = await msg.guild.members.cache.find(member => member.id === champData.results[i].discord_user_id);
+							if (!somePlayer) continue;
+							await somePlayer.roles.remove(champRoleId);
+						}
+					}
+				}
+			}
 		}
 		if (mentionPlayers !== '')
 			await msg.channel.send(mentionPlayers);
