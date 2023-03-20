@@ -63,9 +63,6 @@ function populateRolesRanges() {
 	if (!populateRoleRangesB("https://mkwlounge.gg/api/ladderboundary.php?ladder_id=1", rtLRRoles, rtLRRanges, "RT", false)) return false;
 	if (!populateRoleRangesB("https://mkwlounge.gg/api/ladderclass.php?ladder_id=2", ctRoles, ctRanges, "CT", true)) return false;
 	if (!populateRoleRangesB("https://mkwlounge.gg/api/ladderboundary.php?ladder_id=2", ctLRRoles, ctLRRanges, "CT", false)) return false;
-	// implement Champion
-	rtLRRoles.push('RT Champion');
-	ctLRRoles.push ('CT Champion');
 	return true;
 }
 
@@ -164,10 +161,6 @@ const getRequest = async (mode, warid, msg_obj) => {
 			let html = await downloadPage('https://mkwlounge.gg/api/ladderplayer.php?ladder_id=' + num + '&player_name=' + warid);
 			let parsedData = JSON.parse(html);
 			if (parsedData.status != "success") return false;
-			let champHtml = await downloadPage(`https://mkwlounge.gg/api/ladderplayer.php?ladder_type=${mode}&all=1&limit=1&fields=player_name,discord_user_id,current_division,current_class`);
-			let champParsedData = JSON.parse(champHtml);
-			if (champParsedData.status != "success") return false;
-			champParsedData = champParsedData.results;
 			parsedData = parsedData.results;
 			let returnArray = [];
 			let LRReturnArray = [];
@@ -196,9 +189,6 @@ const getRequest = async (mode, warid, msg_obj) => {
 						}
 					}
 				}
-				// implement Champion
-				if (champParsedData[0].player_name in LRReturnArray)
-					LRReturnArray.push(champParsedData[0].player_name, `${mode.toUpperCase()} Champion`);
 			} else
 				return false;
 			return [returnArray, LRReturnArray];
@@ -206,11 +196,7 @@ const getRequest = async (mode, warid, msg_obj) => {
 			let html = await downloadPage('https://mkwlounge.gg/api/ladderevent.php?ladder_id=' + num + '&event_id=' + warid + "&compress");
 			let parsedData = JSON.parse(html);
 			parsedData = parsedData.results;
-			let champHtml = await downloadPage(`https://mkwlounge.gg/api/ladderplayer.php?ladder_type=${mode}&all=1&limit=1&fields=player_name,discord_user_id,current_division,current_class`);
-			let champParsedData = JSON.parse(champHtml);
-			champParsedData = champParsedData.results;
 			let lrOrder = [], mmrOrder = [];
-			let allPlayerNames = [];
 			if (parsedData.length > 1) {
 				for (let i = 0; i < parsedData.length; i++) {
 					let promotion = parsedData[i].promotion;
@@ -218,7 +204,6 @@ const getRequest = async (mode, warid, msg_obj) => {
 					let updatedMr = parsedData[i].updated_mmr;
 					let currentLr = parsedData[i].current_lr;
 					let updatedLr = parsedData[i].updated_lr;
-					allPlayerNames.push(parsedData[i].player_name);
 
 					for (let j = 0; j < currentRange.length; j++) {
 						if (currentMr >= currentRange[j] && updatedMr < currentRange[j]) {
@@ -248,13 +233,6 @@ const getRequest = async (mode, warid, msg_obj) => {
 							lrOrder.push(i);
 							continue;
 						}
-					}
-
-					// implement Champion
-					if (champParsedData[0].player_name in allPlayerNames) {
-						lrMembers.push(champParsedData[0].player_name);
-						lrRoles.push(`${mode.toUpperCase()} Champion`);
-						lrOrder.push(LRCurrentRange.length);
 					}
 
 					// OLD METHOD
