@@ -254,7 +254,7 @@ const getRequest = async (mode, warid, msg_obj) => {
 					if (champParsedData[0].player_name in allPlayerNames) {
 						lrMembers.push(champParsedData[0].player_name);
 						lrRoles.push(`${mode.toUpperCase()} Champion`);
-						lrOrder.push(LRCurrentRange.length());
+						lrOrder.push(LRCurrentRange.length);
 					}
 
 					// OLD METHOD
