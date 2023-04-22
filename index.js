@@ -57,7 +57,7 @@ async function populateRoleRangesB(url, arr1, arr2, mode, classMode) {
 		console.error('ERROR:');
         console.error(error);
 	}
-	
+
 }
 
 function populateRolesRanges() {
@@ -158,7 +158,7 @@ const getRequest = async (mode, warid, msg_obj) => {
 				}
 			}
 		}
-		
+
 		const currentRange = mode == 'rt' ? rtRanges : ctRanges;
 		const LRCurrentRange = mode == 'rt' ? rtLRRanges : ctLRRanges;
 		if (isNaN(warid)) {
@@ -170,8 +170,8 @@ const getRequest = async (mode, warid, msg_obj) => {
 			let LRReturnArray = [];
 			if (parsedData.length > 0) {
 				for (let i = 0; i < parsedData.length; i++) {
-					returnArray.push(parsedData[i].player_name);
-					LRReturnArray.push(parsedData[i].player_name);
+					returnArray.push(parsedData[i].discord_user_id);
+					LRReturnArray.push(parsedData[i].discord_user_id);
 					let currentMMR = Number(parsedData[i].current_mmr);
 					let currentLR = Number(parsedData[i].current_lr);
 					for (let j = 0; j < checkRoles.length; j++) {
@@ -208,17 +208,17 @@ const getRequest = async (mode, warid, msg_obj) => {
 					let updatedMr = parsedData[i].updated_mmr;
 					let currentLr = parsedData[i].current_lr;
 					let updatedLr = parsedData[i].updated_lr;
-					allPlayersInAnEvent.push(parsedData[i].player_name);
+					allPlayersInAnEvent.push(parsedData[i].discord_user_id);
 
 					for (let j = 0; j < currentRange.length; j++) {
 						if (currentMr >= currentRange[j] && updatedMr < currentRange[j]) {
-							members.push(parsedData[i].player_name);
+							members.push(parsedData[i].discord_user_id);
 							roles.push(checkRoles[j]);
 							mmrOrder.push(i);
 							continue;
 						}
 						if (currentMr < currentRange[j] && updatedMr >= currentRange[j]) {
-							members.push(parsedData[i].player_name);
+							members.push(parsedData[i].discord_user_id);
 							roles.push(checkRoles[j+1]);
 							mmrOrder.push(i);
 							continue;
@@ -227,13 +227,13 @@ const getRequest = async (mode, warid, msg_obj) => {
 
 					for (let j = 0; j < LRCurrentRange.length; j++) {
 						if (currentLr >= LRCurrentRange[j] && updatedLr < LRCurrentRange[j]) {
-							lrMembers.push(parsedData[i].player_name);
+							lrMembers.push(parsedData[i].discord_user_id);
 							lrRoles.push(LRCheckRoles[j]);
 							lrOrder.push(i);
 							continue;
 						}
 						if (currentLr < LRCurrentRange[j] && updatedLr >= LRCurrentRange[j]) {
-							lrMembers.push(parsedData[i].player_name);
+							lrMembers.push(parsedData[i].discord_user_id);
 							lrRoles.push(LRCheckRoles[j+1]);
 							lrOrder.push(i);
 							continue;
@@ -523,7 +523,7 @@ client.on('message', async msg => {
 		const specialRoles = ["Boss", "Custom Track Arbitrator", "Lower Tier CT Arbitrator", "Higher Tier CT Arbitrator", "LT RT Reporter", "LT CT Reporter", "Lower Tier RT Arbitrator", "Higher Tier RT Arbitrator", "Developer"];
 		const modeRoles = (globalMode === "rt") ? rtRoles : ctRoles;
 		const LRModeRoles = (globalMode === "rt") ? rtLRRoles : ctLRRoles;
-		
+
 		if (commandParams.length > 2) {
 			for (i = 0; i < commandParams.length; i++) {
 				if (isNaN(commandParams[1])) {
@@ -542,6 +542,7 @@ client.on('message', async msg => {
 		var mentionPlayers = '';
 		var mentionPlayersArr = [];
 		let resultParamsArray = [];
+		populateRolesRanges();
 
 		if (isNaN(partCommandParam)) {
 			for (i = 0; i < commandParams.length; i++) {
@@ -563,34 +564,12 @@ client.on('message', async msg => {
 			for (i = 0; i < result[0].length; i++) {
 				if (i % 2 === 0) {
 					//extra logic for additional players
-					let currentPlayer = msg.guild.members.cache.find(member => tran_str(member.displayName) === tran_str(result[0][i]));
-					let currentPlayerCollection, collectionNames = [];
-					if (currentPlayer === undefined) {
-						msg.channel.send("Unable to find server member with the name " + result[0][i]);
-						continue;
-					}
-					for (j = 0; j < modeRoles.length; j++) {
-						currentPlayer = await msg.guild.members.cache.find(member => tran_str(member.displayName) === tran_str(result[0][i]) && member.roles.cache.some(role => role.name === modeRoles[j]) && !member.roles.cache.some(role => role.name === "Unverified"));
-						if (currentPlayer !== undefined)
-							break;
-					}
-					for (j = 0; j < modeRoles.length; j++) {
-						currentPlayerCollection = await msg.guild.members.cache.filter(member => tran_str(member.displayName) === tran_str(result[0][i]) && member.roles.cache.some(role => role.name === modeRoles[j]) && !member.roles.cache.some(role => role.name === "Unverified"));
-						if (currentPlayerCollection !== undefined)
-							currentPlayerCollection.each(member => collectionNames.push(member.user.tag));
-					}
-					if (currentPlayer === undefined) {
-						msg.channel.send(result[0][i] + " is unverified or does not have a class role yet.");
-						continue;
-					}
-					let hasDupRoles = checkForDuplicateRoles(modeRoles, currentPlayer);
-					collectionNames = removeDuplicates(collectionNames);
-					if (collectionNames.length > 1)
-						msg.channel.send("Multiple players were found with the same display name: " + collectionNames.join(" & "));
+					let currentPlayer = await msg.guild.members.cache.find(member => tran_str(member.id) === tran_str(result[0][i]));
 					let serverRole = await msg.guild.roles.cache.find(role => role.name == result[0][i+1]);
 					if (!currentPlayer.roles.cache.some(role => role.name.toLowerCase() === serverRole.name.toLowerCase())) {
 						for (j = 0; j < modeRoles.length; j++) {
-							if (currentPlayer.roles.cache.some(role => role.name == modeRoles[j]))
+							let hasRole = await currentPlayer.roles.cache.some(role => role.name == modeRoles[j]);
+							if (hasRole)
 								await currentPlayer.roles.remove(currentPlayer.roles.cache.find(role => role.name.toLowerCase() === modeRoles[j].toLowerCase()));
 						}
 						let fromPenText = (commandParams[i+2] === "np") ? "" : "(from pen)";
@@ -608,30 +587,7 @@ client.on('message', async msg => {
 			for (i = 0; i < result[1].length; i++) {
 				if (i % 2 === 0) {
 					//extra logic for additional players
-					let currentPlayer = msg.guild.members.cache.find(member => tran_str(member.displayName) === tran_str(result[1][i]));
-					let currentPlayerCollection, collectionNames = [];
-					if (currentPlayer === undefined) {
-						msg.channel.send("Unable to find server member with the name " + result[1][i]);
-						continue;
-					}
-					for (j = 0; j < LRModeRoles.length; j++) {
-						currentPlayer = await msg.guild.members.cache.find(member => tran_str(member.displayName) === tran_str(result[1][i]) && member.roles.cache.some(role => role.name === LRModeRoles[j]) && !member.roles.cache.some(role => role.name === "Unverified"));
-						if (currentPlayer !== undefined)
-							break;
-					}
-					for (j = 0; j < LRModeRoles.length; j++) {
-						currentPlayerCollection = await msg.guild.members.cache.filter(member => tran_str(member.displayName) === tran_str(result[1][i]) && member.roles.cache.some(role => role.name === LRModeRoles[j]) && !member.roles.cache.some(role => role.name === "Unverified"));
-						if (currentPlayerCollection !== undefined)
-							currentPlayerCollection.each(member => collectionNames.push(member.user.tag));
-					}
-					if (currentPlayer === undefined) {
-						msg.channel.send(result[1][i] + " is unverified or does not have a rank role yet.");
-						continue;
-					}
-					let hasDupRoles = checkForDuplicateRoles(LRModeRoles, currentPlayer);
-					collectionNames = removeDuplicates(collectionNames);
-					if (collectionNames.length > 1)
-						msg.channel.send("Multiple players were found with the same display name: " + collectionNames.join(" & "));
+					let currentPlayer = await msg.guild.members.cache.find(member => tran_str(member.id) === tran_str(result[1][i]));
 					let serverRole = await msg.guild.roles.cache.find(role => role.name == result[1][i+1]);
 					if (!currentPlayer.roles.cache.some(role => role.name.toLowerCase() === serverRole.name.toLowerCase())) {
 						for (j = 0; j < LRModeRoles.length; j++) {
@@ -645,7 +601,7 @@ client.on('message', async msg => {
 						mentionPlayers += result[1][i+1].includes("II") ? " II" : result[1][i+1].includes("I") && !result[1][i+1].includes("Iron") ? " I" : "";
 						mentionPlayers += ` ${fromPenText}\n`;
 					}
-					if (hasDupRoles)
+					if (checkForDuplicateRoles(modeRoles, currentPlayer))
 						msg.channel.send(`${currentPlayer.displayName} has multiple ${globalMode.toUpperCase()} roles but should be ${serverRole.name}. Check if they promoted/demoted to a temprole`);
 				}
 			}
@@ -657,40 +613,12 @@ client.on('message', async msg => {
 				const players = resultarray.slice(resultarray.length/2, resultarray.length);
 				for (i = 0; i < players.length; i++) {
 					let hasSpecialRole = false;
-					let currentPlayer = await msg.guild.members.cache.find(member => tran_str(member.displayName) === tran_str(players[i]));
-					let currentPlayerCollection, collectionNames = [];
+					let currentPlayer = await msg.guild.members.cache.find(member => tran_str(member.id) === tran_str(players[i])/* || member.id === '222356623392243712'*/);
 					if (currentPlayer === undefined) {
-						msg.channel.send("Unable to find server member with the name " + players[i]);
-						continue;
-					}
-					//...
-					for (j = 0; j < modeRoles.length; j++) {
-						currentPlayer = await msg.guild.members.cache.find(member => tran_str(member.displayName) === tran_str(players[i]) && member.roles.cache.some(role => role.name === modeRoles[j]) && !member.roles.cache.some(role => role.name === "Unverified"));
-						if (currentPlayer !== undefined)
-							break;
-					}
-					for (j = 0; j < modeRoles.length; j++) {
-						currentPlayerCollection = await msg.guild.members.cache.filter(member => tran_str(member.displayName) === tran_str(players[i]) && member.roles.cache.some(role => role.name == modeRoles[j]) && !member.roles.cache.some(role => role.name === "Unverified"));
-						if (currentPlayerCollection !== undefined)
-							currentPlayerCollection.each(member => collectionNames.push(member.user.tag));
-					}
-					if (currentPlayer === undefined) {
-						for (j = 0; j < specialRoles.length; j++) {
-							currentPlayer = await msg.guild.members.cache.find(member => tran_str(member.displayName) === tran_str(players[i]) && member.roles.cache.some(role => role.name == specialRoles[j]) && !member.roles.cache.some(role => role.name === "Unverified"));
-							if (currentPlayer !== undefined) {
-								hasSpecialRole = true;
-								break;
-							}
-						}
-					}
-					if (currentPlayer === undefined) {
-						msg.channel.send(players[i] + " is unverified or does not have a class role yet.");
+						msg.channel.send("Player with id " + players[i] + " not found.");
 						continue;
 					}
 					let hasDupRoles = checkForDuplicateRoles(modeRoles, currentPlayer);
-					collectionNames = removeDuplicates(collectionNames);
-					if (collectionNames.length > 1)
-						msg.channel.send("2 players were found with the same display name: " + collectionNames.join(" & "));
 					//...
 					mentionPlayersArr[result[2][i]] = `<@${currentPlayer.id}> ${ranks[i]}`;
 					//mentionPlayers += `<@${currentPlayer.id}> ` + emoji(ranks[i].replace(/\s/g, '').replace(/[I]/g, '').replace("RT", '').replace('CT', ''), msg);
@@ -699,14 +627,15 @@ client.on('message', async msg => {
 					const specialRole = modeRoles[modeRoles.indexOf(ranks[i])];
 					for (j = 0; j < modeRoles.length; j++) {
 						if (modeRoles[j] !== specialRole) {
-							if (currentPlayer.roles.cache.some(role => role.name === modeRoles[j]) && !hasDupRoles)
+							let hasRole = await currentPlayer.roles.cache.some(role => role.name === modeRoles[j]);
+							if (hasRole && !hasDupRoles)
 								await currentPlayer.roles.remove(currentPlayer.roles.cache.find(role => role.name.toLowerCase() === modeRoles[j].toLowerCase()));
 						}
 					}
 					if (!hasSpecialRole)
 						await currentPlayer.roles.add(serverRole.id);
 					if (hasDupRoles)
-						msg.channel.send(`${currentPlayer.displayName} has multiple ${globalMode.toUpperCase()} roles. Please check if they promoted/demoted to a temprole`);
+						await msg.channel.send(`${currentPlayer.displayName} has multiple ${globalMode.toUpperCase()} roles. Please check if they promoted/demoted to a temprole`);
 				}
 			}
 
@@ -716,40 +645,12 @@ client.on('message', async msg => {
 				const players = resultarray.slice(resultarray.length/2, resultarray.length);
 				for (i = 0; i < players.length; i++) {
 					let hasSpecialRole = false;
-					let currentPlayer = await msg.guild.members.cache.find(member => tran_str(member.displayName) === tran_str(players[i]));
-					let currentPlayerCollection, collectionNames = [];
+					let currentPlayer = await msg.guild.members.cache.find(member => tran_str(member.id) === tran_str(players[i])/* || member.id === '222356623392243712'*/);
 					if (currentPlayer === undefined) {
-						msg.channel.send("Unable to find server member with the name " + players[i]);
-						continue;
-					}
-					//...
-					for (j = 0; j < LRModeRoles.length; j++) {
-						currentPlayer = await msg.guild.members.cache.find(member => tran_str(member.displayName) === tran_str(players[i]) && member.roles.cache.some(role => role.name === LRModeRoles[j]) && !member.roles.cache.some(role => role.name === "Unverified"));
-						if (currentPlayer !== undefined)
-							break;
-					}
-					for (j = 0; j < LRModeRoles.length; j++) {
-						currentPlayerCollection = await msg.guild.members.cache.filter(member => tran_str(member.displayName) === tran_str(players[i]) && member.roles.cache.some(role => role.name == LRModeRoles[j]) && !member.roles.cache.some(role => role.name === "Unverified"));
-						if (currentPlayerCollection !== undefined)
-							currentPlayerCollection.each(member => collectionNames.push(member.user.tag));
-					}
-					if (currentPlayer === undefined) {
-						for (j = 0; j < specialRoles.length; j++) {
-							currentPlayer = await msg.guild.members.cache.find(member => tran_str(member.displayName) === tran_str(players[i]) && member.roles.cache.some(role => role.name == specialRoles[j]) && !member.roles.cache.some(role => role.name === "Unverified"));
-							if (currentPlayer !== undefined) {
-								hasSpecialRole = true;
-								break;
-							}
-						}
-					}
-					if (currentPlayer === undefined) {
-						msg.channel.send(players[i] + " is unverified or does not have a rank role yet.");
+						msg.channel.send("Player with id " + players[i] + " not found.");
 						continue;
 					}
 					let hasDupRoles = checkForDuplicateRoles(LRModeRoles, currentPlayer);
-					collectionNames = removeDuplicates(collectionNames);
-					if (collectionNames.length > 1)
-						msg.channel.send("2 players were found with the same display name: " + collectionNames.join(" & "));
 					//...
 					if (!mentionPlayersArr[result[3][i]]) mentionPlayersArr[result[3][i]] = `<@${currentPlayer.id}> ` + emoji(ranks[i].replace(/[I]/g, '').replace("RT ", '').replace('CT ', ''), msg);
 					else mentionPlayersArr[result[3][i]] += " & " + emoji(ranks[i].replace(/[I]/g, '').replace("RT ", '').replace('CT ', ''), msg);
@@ -766,7 +667,7 @@ client.on('message', async msg => {
 					if (!hasSpecialRole)
 						await currentPlayer.roles.add(serverRole.id);
 					if (hasDupRoles)
-						msg.channel.send(`${currentPlayer.displayName} has multiple ${globalMode.toUpperCase()} roles. Please check if they promoted/demoted to a temprole`);
+						await msg.channel.send(`${currentPlayer.displayName} has multiple ${globalMode.toUpperCase()} roles. Please check if they promoted/demoted to a temprole`);
 				}
 			}
 		}
@@ -780,8 +681,8 @@ client.on('message', async msg => {
 			let champHTML = await downloadPage(`https://mkwlounge.gg/api/ladderplayer.php?ladder_type=${globalMode}&all=1&limit=10&fields=player_name,discord_user_id,current_division,current_class`);
 			let champData=JSON.parse(champHTML);
 			let champPlayerId=/*'222356623392243712';*/champData.results[0].discord_user_id;
-			if (allPlayersInAnEvent.includes(champData.results[0].player_name)) {
-				let champPlayer = await msg.guild.members.cache.find(member => member.id === champPlayerId);
+			if (allPlayersInAnEvent.includes(champData.results[0].discord_user_id)) {
+				let champPlayer = await msg.guild.members.cache.find(member => member.id === champPlayerId/* || member.id === '222356623392243712'*/);
 				if (champPlayer) {
 					if (!champPlayer.roles.cache.some(role => role.id === champRoleId)) {
 						await champPlayer.roles.add(champRoleId);
