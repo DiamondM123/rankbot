@@ -680,18 +680,16 @@ client.on('message', async msg => {
 
 			let champHTML = await downloadPage(`https://mkwlounge.gg/api/ladderplayer.php?ladder_type=${globalMode}&all=1&limit=10&fields=player_name,discord_user_id,current_division,current_class`);
 			let champData=JSON.parse(champHTML);
-			let champPlayerId=/*'222356623392243712';*/champData.results[0].discord_user_id;
-			if (allPlayersInAnEvent.includes(champData.results[0].discord_user_id)) {
-				let champPlayer = await msg.guild.members.cache.find(member => member.id === champPlayerId/* || member.id === '222356623392243712'*/);
-				if (champPlayer) {
-					if (!champPlayer.roles.cache.some(role => role.id === champRoleId)) {
-						await champPlayer.roles.add(champRoleId);
-						mentionPlayers += (mentionPlayers == '' ? '' : '\n') + `<@${champPlayerId}> You are a ${globalMode.toUpperCase()} Champion ` + emoji('bloblmao', msg);
-						for (let i = 1; i < champData.results.length; ++i) {
-							let somePlayer = await msg.guild.members.cache.find(member => member.id === champData.results[i].discord_user_id);
-							if (!somePlayer) continue;
-							await somePlayer.roles.remove(champRoleId);
-						}
+			let champPlayerId=champData.results[0].discord_user_id;
+			let champPlayer = await msg.guild.members.cache.find(member => member.id === champPlayerId/* || member.id === '222356623392243712'*/);
+			if (champPlayer) {
+				if (!champPlayer.roles.cache.some(role => role.id === champRoleId)) {
+					await champPlayer.roles.add(champRoleId);
+					mentionPlayers += (mentionPlayers == '' ? '' : '\n') + `<@${champPlayerId}> :crown:`;
+					for (let i = 1; i < champData.results.length; ++i) {
+						let somePlayer = await msg.guild.members.cache.find(member => member.id === champData.results[i].discord_user_id);
+						if (!somePlayer) continue;
+						await somePlayer.roles.remove(champRoleId);
 					}
 				}
 			}
